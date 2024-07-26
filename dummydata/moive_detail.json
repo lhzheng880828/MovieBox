@@ -1,0 +1,43 @@
+{
+  "movie": {
+    "id": 1,
+    "title": "Mystery of the Lost City",
+    "director": "Peter Johnson",
+    "year": 2021,
+    "genre": ["Mystery", "Thriller"],
+    "rating": 7.2,
+    "synopsis": "An archaeologist discovers an ancient city with hidden secrets and dangerous traps.",
+    "posterUrl": "https://dummyimage.com/300x450/000/fff&text=Mystery+of+the+Lost+City",
+    "playUrl": "https://example.com/play/mystery-of-the-lost-city",
+    "cast": [
+      {
+        "name": "John Doe",
+        "role": "Archaeologist"
+      },
+      {
+        "name": "Jane Smith",
+        "role": "Historian"
+      }
+    ],
+    "duration": "120 minutes",
+    "releaseDate": "2021-07-15",
+    "language": "English",
+    "subtitles": ["English", "Spanish", "French"],
+    "reviews": [
+      {
+        "author": "Film Critic 1",
+        "content": "An engaging and thrilling adventure with unexpected twists."
+      },
+      {
+        "author": "Film Critic 2",
+        "content": "A captivating storyline and strong performances by the cast."
+      }
+    ]
+  }
+}
+
+
+
+
+
+

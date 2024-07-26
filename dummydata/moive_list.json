@@ -1,0 +1,105 @@
+{
+  "movies": [
+    {
+      "id": 1,
+      "title": "The Enchanted Forest",
+      "director": "John Smith",
+      "year": 2020,
+      "genre": ["Fantasy", "Adventure"],
+      "rating": 7.8,
+      "synopsis": "A young girl embarks on a magical journey through an enchanted forest to find her lost brother.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=The+Enchanted+Forest"
+    },
+    {
+      "id": 2,
+      "title": "Space Odyssey",
+      "director": "Jane Doe",
+      "year": 2019,
+      "genre": ["Sci-Fi", "Drama"],
+      "rating": 8.5,
+      "synopsis": "A mission to explore a distant galaxy uncovers unexpected mysteries and challenges.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=Space+Odyssey"
+    },
+    {
+      "id": 3,
+      "title": "Mystery of the Lost City",
+      "director": "Peter Johnson",
+      "year": 2021,
+      "genre": ["Mystery", "Thriller"],
+      "rating": 7.2,
+      "synopsis": "An archaeologist discovers an ancient city with hidden secrets and dangerous traps.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=Mystery+of+the+Lost+City"
+    },
+    {
+      "id": 4,
+      "title": "Love in Paris",
+      "director": "Emily Davis",
+      "year": 2018,
+      "genre": ["Romance", "Drama"],
+      "rating": 6.9,
+      "synopsis": "Two strangers meet in Paris and fall in love, but face challenges that test their relationship.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=Love+in+Paris"
+    },
+    {
+      "id": 5,
+      "title": "The Last Warrior",
+      "director": "Michael Brown",
+      "year": 2017,
+      "genre": ["Action", "Adventure"],
+      "rating": 8.0,
+      "synopsis": "A warrior fights to protect his kingdom from invading forces and reclaim his honor.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=The+Last+Warrior"
+    },
+    {
+      "id": 6,
+      "title": "Haunted Nights",
+      "director": "Sarah Wilson",
+      "year": 2022,
+      "genre": ["Horror", "Thriller"],
+      "rating": 7.5,
+      "synopsis": "A group of friends experience terrifying events during a weekend stay at a haunted house.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=Haunted+Nights"
+    },
+    {
+      "id": 7,
+      "title": "The Great Heist",
+      "director": "David Lee",
+      "year": 2021,
+      "genre": ["Crime", "Thriller"],
+      "rating": 8.1,
+      "synopsis": "A mastermind thief plans and executes the biggest heist of the century.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=The+Great+Heist"
+    },
+    {
+      "id": 8,
+      "title": "Dreams of Tomorrow",
+      "director": "Chris Evans",
+      "year": 2019,
+      "genre": ["Sci-Fi", "Romance"],
+      "rating": 7.4,
+      "synopsis": "In a future where dreams can be controlled, a couple fights to preserve their true memories.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=Dreams+of+Tomorrow"
+    },
+    {
+      "id": 9,
+      "title": "The Comedy Club",
+      "director": "Alice Walker",
+      "year": 2020,
+      "genre": ["Comedy"],
+      "rating": 6.8,
+      "synopsis": "A group of stand-up comedians navigate the ups and downs of life and love.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=The+Comedy+Club"
+    },
+    {
+      "id": 10,
+      "title": "Warrior's Path",
+      "director": "Mark Taylor",
+      "year": 2022,
+      "genre": ["Action", "Fantasy"],
+      "rating": 8.3,
+      "synopsis": "A legendary warrior embarks on a quest to defeat a powerful sorcerer and save his people.",
+      "posterUrl": "https://dummyimage.com/300x450/000/fff&text=Warrior's+Path"
+    }
+  ]
+}
+

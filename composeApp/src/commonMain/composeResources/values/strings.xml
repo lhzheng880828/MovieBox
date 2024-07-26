@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="label_title">Title</string>
+    <string name="label_artist">Artist</string>
+    <string name="label_date">Date</string>
+    <string name="label_dimensions">Dimensions</string>
+    <string name="label_medium">Medium</string>
+    <string name="label_department">Department</string>
+    <string name="label_repository">Repository</string>
+    <string name="label_credits">Credits</string>
+
+    <string name="back">Back</string>
+
+    <string name="no_data_available">No data available</string>
+    <string name="frutties">frutties</string>
+    <string name="add">add</string>
+    <string name="app_name">Dice Roller</string>
+
+    <string name="loading_settings">Loading settings…</string>
+
+    <plurals name="roll_button_text">
+        <item quantity="one">Roll one %2$d-sided die</item>
+        <item quantity="other">Roll %1$d pieces of %2$d-sided dice</item>
+    </plurals>
+    <string name="roll_button_text_unique_suffix">for unique values</string>
+    <string name="roll_result">Result:\n%1$d (%2$s)</string>
+    <string name="roll_result_waiting">Waiting for a roll…</string>
+    <string name="roll_result_error">Failed to roll dice,\ncheck settings and try again</string>
+
+    <string name="configure_roll_settings">Configure roll settings</string>
+    <string name="number_of_dice">Number of dice: %1$d</string>
+    <string name="sides_of_dice">Sides on each die: %1$d</string>
+    <string name="unique_rolls">Unique rolls</string>
+    <string name="save_settings">Save settings</string>
+    <string name="subscribe_now">Subscribe Now</string>
+</resources>
