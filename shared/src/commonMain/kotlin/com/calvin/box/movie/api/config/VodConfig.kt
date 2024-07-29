@@ -95,11 +95,13 @@ class VodConfig {
     private fun loadConfig(callback: Callback?) {
         Napier.d { "#loadConfig invoke" }
         try {
-            checkJson(Json.parse(Decoder.getJson(config.url)).jsonObject, callback)
+            val orgJson = Decoder.getJson(config.url)
+            //Napier.d { "#loadConfig orgJson: $orgJson" }
+            checkJson(Json.parse(orgJson).jsonObject, callback)
         } catch (e: Throwable) {
+            e.printStackTrace()
             if (config.url.isEmpty()) callback?.error("url is empty")
             else loadCache(callback, e)
-            e.printStackTrace()
         }
     }
 
@@ -121,7 +123,7 @@ class VodConfig {
         Napier.d { "#checkJson invoke" }
 
         if (jsonObject.containsKey("msg") && callback != null) {
-            App.post { callback.error(jsonObject["msg"].toString()) }
+            callback.error(jsonObject["msg"].toString())
         } else if (jsonObject.containsKey("urls")) {
             parseDepot(jsonObject, callback)
         } else {
@@ -333,7 +335,7 @@ class VodConfig {
         this.home = home
         this.home?.activated =true
         runBlocking { config.home(home.key).save() }
-        //for (item in getSites()) item.setActivated(home)
+        for (item in getSites()) item.setActivated(home)
     }
 
     private fun setWall(wall: String) {

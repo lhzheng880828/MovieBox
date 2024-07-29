@@ -39,6 +39,10 @@ data class Filter (
         return this
     }
 
+    override fun toString(): String {
+        return "Filter(key='$key', name='$name', init='$init', values=$values)"
+    }
+
     companion object {
         fun objectFrom(element: JsonElement): Filter {
             return Json.decodeFromJsonElement(element)
@@ -47,6 +51,7 @@ data class Filter (
         fun arrayFrom(result: String): List<Filter> {
            return Json.decodeFromString(result)
         }
-
     }
+
+
 }

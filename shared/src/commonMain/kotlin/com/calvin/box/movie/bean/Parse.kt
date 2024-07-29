@@ -3,12 +3,14 @@ package com.calvin.box.movie.bean
 import com.calvin.box.movie.utils.UrlUtil
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+@Serializable
 data class Parse(
     @SerialName("name")
     var name: String = "",
@@ -17,7 +19,7 @@ data class Parse(
     @SerialName("url")
     var url: String = "",
     @SerialName("ext")
-    var ext: Ext = Ext(header = null),
+    var ext: Ext = Ext(),
     var isActivated: Boolean = false,
     var click: String? = null
 ) {
@@ -30,12 +32,12 @@ data class Parse(
         this.isActivated = (item == this)
     }
 
-    val headers: Map<String, String>?
+   /* val headers: Map<String, String>?
         get() = ext.header?.let { com.calvin.box.movie.utils.Json.toMap(it).toMutableMap() }
 
     fun setHeader(header: JsonElement) {
         if (ext.header == null) ext.header = header
-    }
+    }*/
 
     val isEmpty: Boolean
         get() = type == 0 && url.isEmpty()
@@ -76,8 +78,10 @@ data class Parse(
 
 
     companion object {
+
+        val json = Json{ignoreUnknownKeys = true}
         fun objectFrom(element: JsonElement): Parse {
-            return Json.decodeFromJsonElement(element)
+            return json.decodeFromJsonElement(element)
         }
 
         fun get(name: String): Parse {
@@ -99,14 +103,15 @@ data class Parse(
     }
 }
 
+@Serializable
 data class Ext (
     @SerialName("flag")
      var flag: List<String> = emptyList(),
     @SerialName("header")
- var header: JsonElement?
+ var header: Map<String, String> = mutableMapOf()
 ){
     val isEmpty: Boolean
-        get() = header == null && flag.isEmpty()
+        get() = false
 
 
 }

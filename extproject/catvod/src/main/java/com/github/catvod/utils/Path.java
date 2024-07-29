@@ -190,6 +190,7 @@ public class Path {
             fos.write(data);
             fos.flush();
             fos.close();
+            file.setReadOnly();
             return file;
         } catch (Exception ignored) {
             ignored.printStackTrace();

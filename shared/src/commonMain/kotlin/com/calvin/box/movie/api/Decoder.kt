@@ -26,7 +26,39 @@ object Decoder {
         if (data.contains("**")) data = base64(data)
         if (data.startsWith("2423")) data = cbc(data)
         if (key.isNotEmpty()) data = ecb(data, key)
+        data = extractJsonString(data)
         return fix(parsedUrl, data)
+    }
+
+    private fun extractJsonString(input: String): String {
+        val stringBuilder = StringBuilder()
+        var openBraces = 0
+        var insideJson = false
+
+        for (char in input) {
+            if (char == '{') {
+                openBraces++
+                insideJson = true
+            }
+
+            if (insideJson) {
+                stringBuilder.append(char)
+            }
+
+            if (char == '}') {
+                openBraces--
+                if (openBraces == 0 && insideJson) {
+                    break
+                }
+            }
+        }
+
+        val jsonString = stringBuilder.toString()
+        return if (jsonString.isNotEmpty() && openBraces == 0) {
+            jsonString
+        } else {
+            "No valid JSON object found"
+        }
     }
 
     private fun fix(url: String, data: String): String {

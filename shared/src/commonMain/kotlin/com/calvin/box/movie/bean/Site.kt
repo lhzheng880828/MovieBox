@@ -7,11 +7,20 @@ import com.calvin.box.movie.Constant
 import com.calvin.box.movie.db.MoiveDatabase
 import io.ktor.http.HeadersBuilder
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.Transient
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -33,7 +42,7 @@ data class Site(
     var api: String = "",
 
     @Ignore
-    //@JsonAdapter(ExtAdapter::class)
+    @Serializable(with = ExtAdapter::class)
     @SerialName("ext")
     var ext: String = "",
 
@@ -92,9 +101,11 @@ data class Site(
 
     companion object {
         fun objectFrom(element: JsonElement): Site {
+            val json = Json { ignoreUnknownKeys= true }
             return try {
-                Json.decodeFromJsonElement(element)
+                json.decodeFromJsonElement(element)
             } catch (e: Exception) {
+                e.printStackTrace()
                 Site(key = "0")
             }
         }
@@ -175,4 +186,21 @@ data class Site(
     }
 
 
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializer(forClass = String::class)
+object ExtAdapter : KSerializer<String> {
+    override fun deserialize(decoder: Decoder): String {
+        val jsonElement = decoder as? JsonElement ?: return ""
+        return when {
+            jsonElement is JsonPrimitive -> jsonElement.contentOrNull ?: ""
+            jsonElement is JsonArray || jsonElement is JsonObject -> jsonElement.toString()
+            else -> ""
+        }
+    }
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
 }

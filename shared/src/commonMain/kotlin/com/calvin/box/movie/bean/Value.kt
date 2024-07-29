@@ -39,4 +39,9 @@ data class Value(
     fun trans() {
         n = Trans.s2t(n)
     }
+
+    override fun toString(): String {
+        return "Value(n='$n', v='$v', activated=$activated)"
+    }
+
 }

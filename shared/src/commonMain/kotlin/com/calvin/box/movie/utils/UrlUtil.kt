@@ -32,12 +32,9 @@ object UrlUtil {
     }
 
     fun resolve(baseUri: String, referenceUri: String): String {
-        val urlBuilder = URLBuilder(baseUri)
-        val resolved = URLBuilder().apply {
-            protocol = urlBuilder.protocol
-            host = urlBuilder.host
-            port = urlBuilder.port
-        }.buildString() + "/"
+        val resolved = URLBuilder(baseUri).apply {
+            takeFrom(referenceUri)
+        }.buildString()
         Napier.d{"resolved url: $resolved"}
         return resolved
     }

@@ -10,6 +10,7 @@ object Json {
         return try {
             kotlinx.serialization.json.Json.parseToJsonElement(json)
         } catch (e: Throwable) {
+            e.printStackTrace()
             JsonNull
         }
     }

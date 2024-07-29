@@ -1,8 +1,18 @@
 package com.calvin.box.movie.bean
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNames
+
 /*
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Root
@@ -11,13 +21,15 @@ import org.simpleframework.xml.Text
 
 //@Root(strict = false)
 @Serializable
-data class Class(
+data class Class @OptIn(ExperimentalSerializationApi::class) constructor(
    // @Attribute(name = "id", required = false)
-    @SerialName(value = "type_id"/*, alternate = ["id"]*/)
+   // @Serializable(with = TypeSerializer::class)
+    @JsonNames("type id", "type_id")
     var typeId: String = "",
 
     //@Text
-    @SerialName(value = "type_name"/*, alternate = ["name"]*/)
+   // @Serializable(with = NameSerializer::class)
+    @JsonNames("type name", "type_name")
     var typeName: String = "",
 
     @SerialName("type_flag")
@@ -40,8 +52,9 @@ data class Class(
 ) /*: Parcelable*/ {
 
     companion object {
-        fun objectFrom(json: String): Class {
-            return Json.decodeFromString(json)
+        val json = Json { ignoreUnknownKeys=true }
+        fun objectFrom(jsonStr: String): Class {
+            return json.decodeFromString(jsonStr)
         }
     }
 
@@ -102,3 +115,56 @@ data class Class(
 
 
 }
+
+object TypeSerializer : KSerializer<String> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("typeId") {
+        element<String>("type_id")
+        element<String>("type id")
+    }
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): String {
+        return decoder.decodeStructure(descriptor) {
+            var result: String? = null
+            for (i in 0 until descriptor.elementsCount) {
+                val name = descriptor.getElementName(i)
+                if (name == "type_id" || name == "type id") {
+                    result = decodeStringElement(descriptor, i)
+                    break
+                }
+            }
+            result ?: throw IllegalArgumentException("Missing type_id or alternative_type_id field")
+        }
+    }
+}
+
+object NameSerializer : KSerializer<String> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("typeName") {
+        element<String>("type_name")
+        element<String>("type name")
+    }
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): String {
+        return decoder.decodeStructure(descriptor) {
+            var result: String? = null
+            for (i in 0 until descriptor.elementsCount) {
+                val name = descriptor.getElementName(i)
+                if (name == "type_name" || name == "type name") {
+                    result = decodeStringElement(descriptor, i)
+                    break
+                }
+            }
+            result ?: throw IllegalArgumentException("Missing type_name or alternative_type_name field")
+        }
+    }
+}
+

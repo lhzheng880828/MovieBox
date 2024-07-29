@@ -18,6 +18,7 @@ import cafe.adriel.voyager.navigator.tab.*
 import com.calvin.box.movie.bean.Class
 import com.calvin.box.movie.feature.vod.VodListScreen
 import com.calvin.box.movie.ui.screens.tabsview.HomeTabViewModel
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import moviebox.composeapp.generated.resources.Res
 import moviebox.composeapp.generated.resources.ic_home_tab
@@ -104,8 +105,11 @@ internal object ShortDramaTab : Tab {
 fun SwipeableTabLayout(viewModel: HomeTabViewModel) {
     val homeResult by viewModel.homeResult.collectAsState()
     val categories: List<Class> = homeResult.types
+
     val tabs = mutableListOf<Tab>()
     for (category in categories){
+        Napier.d { "loop category: $category" }
+        if(category.typeId.isEmpty()) category.typeId = category.typeName
         viewModel.loadCategoryContent(category)
         tabs.add(VodListScreen(category,viewModel))
     }

@@ -2,28 +2,41 @@ package com.calvin.box.movie.bean
 
 
 import com.calvin.box.movie.utils.Sniffer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
 /*import dev.icerock.moko.parcelize.Parcelable
 import com.fongmi.android.tv.App
 import com.fongmi.android.tv.utils.Sniffer*/
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNames
 
 @Serializable
-data class Vod(
+data class Vod @OptIn(ExperimentalSerializationApi::class) constructor(
     @SerialName("vod_id")
     var vodId: String = "",
 
-    @SerialName("vod_name")
+    //@Serializable(with = VodNameSerializer::class)
+    @JsonNames("vod name", "vod_name")
     var vodName: String =  "",
 
     @SerialName("type_name")
     var typeName: String = "",
 
-    @SerialName("vod_pic")
+   // @Serializable(with = PicSerializer::class)
+    @JsonNames("vod pic", "vod_pic")
+
     var vodPic: String = "",
 
-    @SerialName("vod_remarks")
+    //@Serializable(with = RemarksSerializer::class)
+    @JsonNames("vod_remarks", "vod remarks")
     var vodRemarks: String = "",
 
     @SerialName("vod_year")
@@ -149,5 +162,82 @@ data class Vod(
         return "Vod(vodName='$vodName', vodId='$vodId', typeName='$typeName')"
     }
 
+}
 
+object VodNameSerializer : KSerializer<String> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("vodName") {
+        element<String>("vod_name")
+        element<String>("vod name")
+    }
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): String {
+        return decoder.decodeStructure(descriptor) {
+            var result: String? = null
+            for (i in 0 until descriptor.elementsCount) {
+                val name = descriptor.getElementName(i)
+                if (name == "vod_name" || name == "alternative_vod_name") {
+                    result = decodeStringElement(descriptor, i)
+                    break
+                }
+            }
+            result ?: throw IllegalArgumentException("Missing vod_name or alternative_vod_name field")
+        }
+    }
+}
+
+object PicSerializer : KSerializer<String> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("vodPic") {
+        element<String>("vod_pic")
+        element<String>("vod pic")
+    }
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): String {
+        return decoder.decodeStructure(descriptor) {
+            var result: String? = null
+            for (i in 0 until descriptor.elementsCount) {
+                val name = descriptor.getElementName(i)
+                if (name == "vod_pic" || name == "vod pic") {
+                    result = decodeStringElement(descriptor, i)
+                    break
+                }
+            }
+            result ?: throw IllegalArgumentException("Missing vod_pic or alternative_vod_pic field")
+        }
+    }
+}
+
+object RemarksSerializer : KSerializer<String> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("vodRemarks") {
+        element<String>("vod_remarks")
+        element<String>("vod remarks")
+    }
+
+    override fun serialize(encoder: Encoder, value: String) {
+        encoder.encodeString(value)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): String {
+        return decoder.decodeStructure(descriptor) {
+            var result: String? = null
+            for (i in 0 until descriptor.elementsCount) {
+                val name = descriptor.getElementName(i)
+                if (name == "vod_remarks" || name == "vod remarks") {
+                    result = decodeStringElement(descriptor, i)
+                    break
+                }
+            }
+            result ?: throw IllegalArgumentException("Missing vod_remarks or alternative_vod_remarks field")
+        }
+    }
 }
