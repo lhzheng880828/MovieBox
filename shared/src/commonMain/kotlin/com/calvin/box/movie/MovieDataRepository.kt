@@ -55,9 +55,14 @@ class MovieDataRepository (
         return spiderLoader.loadHomeContent(site)
     }
 
-    suspend fun loadCategoryContent(homeSite: Site, category: Class):Result{
-        Napier.d { "#loadCategoryContent invoke, site: $homeSite, category: $category" }
-        return spiderLoader.loadCategoryContent(homeSite, category)
+    suspend fun loadCategoryContent(homeSite: Site, category: Class, pageNum:String):Result{
+        Napier.d { "#loadCategoryContent invoke, site: $homeSite, category: $category, pageNum: $pageNum" }
+        return spiderLoader.loadCategoryContent(homeSite, category, page = pageNum)
+    }
+
+    suspend fun loadVodDetailContent(site:Site, vodId:String):Result{
+        Napier.d { "#loadVodDetailContent invoke, siteKey: ${site.key}, vodId: $vodId" }
+        return spiderLoader.loadDetailContent(site, vodId)
     }
 
     val vodList:Flow<List<Vod>> = emptyFlow()

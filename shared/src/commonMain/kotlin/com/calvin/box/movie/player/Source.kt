@@ -32,12 +32,11 @@ object  Source {
         }
     }
 
-    suspend fun parse(coroutineScope: CoroutineScope, flags: List<Flag>) {
+    suspend fun parse(flags: List<Flag>) {
         flags.forEach { flag ->
             val newEpisodes = flag.episodes.map { episode ->
-                coroutineScope.async { processEpisode(episode) }
-            }.awaitAll().flatten()
-
+                processEpisode(episode)
+            }.flatten()
             flag.episodes.clear()
             flag.episodes.addAll(newEpisodes)
         }

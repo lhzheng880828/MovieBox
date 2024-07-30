@@ -12,6 +12,7 @@ androidx-material = "1.12.0"
 androidx-test-junit = "1.1.5"
 androidx-collection = "1.4.1"
 androidx-annotation = "1.8.0"
+androidx-paging3 = "3.3.0-alpha02-0.5.1"
 compose-plugin = "1.6.11"
 junit = "4.13.2"
 kotlin = "2.0.0"
@@ -48,6 +49,8 @@ preference = "1.2.1"
 juniversalchardet = "1.0.3"
 
 [libraries]
+paging-common = {module = "app.cash.paging:paging-common",version.ref = "androidx-paging3" }
+paging-compose-common = {module = "app.cash.paging:paging-compose-common",version.ref = "androidx-paging3"}
 wrapper-java = {module = "wang.harlon.quickjs:wrapper-java", version.ref = "wrapper-java"}
 android-retrofuture = {module = "net.sourceforge.streamsupport:android-retrofuture", version.ref = "android-retrofuture"}
 juniversalchardet = {module = "com.googlecode.juniversalchardet:juniversalchardet", version.ref = "juniversalchardet"}

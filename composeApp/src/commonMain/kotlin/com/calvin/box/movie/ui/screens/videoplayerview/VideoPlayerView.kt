@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.koin.getScreenModel
+import com.calvin.box.movie.api.config.VodConfig
 import com.calvin.box.movie.font.FontType
 import com.calvin.box.movie.font.MediaFont
 import com.calvin.box.movie.media.model.PlayerConfig
@@ -48,6 +51,7 @@ import com.calvin.box.movie.ui.components.BackButtonNavBar
 import com.calvin.box.movie.utility.FromLocalDrawable
 import com.calvin.box.movie.utility.FromRemote
 import com.calvin.box.movie.utility.getSafeAreaSize
+import io.github.aakira.napier.Napier
 import moviebox.composeapp.generated.resources.Res
 import moviebox.composeapp.generated.resources.icn_add
 import moviebox.composeapp.generated.resources.icn_download
@@ -59,12 +63,23 @@ import org.jetbrains.compose.resources.DrawableResource
 class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
     @Composable
     override fun Content() {
-        VideoPlayerContentView(currentVideo)
+        val vodDetailModel:VideoPlayerViewModel = getScreenModel()
+        val siteKey = currentVideo.siteKey
+        val vodId = currentVideo.id
+        if(!siteKey.isNullOrEmpty()){
+            val site =VodConfig.get().getSite(siteKey )
+            vodDetailModel.getVodDetail(site, vodId)
+            VideoPlayerContentView(currentVideo, vodDetailModel)
+        }
+
     }
 }
 
 @Composable
-private fun VideoPlayerContentView(currentVideo: VideoModel) {
+private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:VideoPlayerViewModel) {
+
+      val vodDetail by vodDetailModel.vodDetail.collectAsState()
+    Napier.d { "vodDetail: $vodDetail" }
     val navigator = LocalNavigation.current
     var video by remember { mutableStateOf(currentVideo) }
 

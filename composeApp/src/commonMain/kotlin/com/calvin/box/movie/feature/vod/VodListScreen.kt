@@ -26,37 +26,49 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.paging.PagingData
+import app.cash.paging.compose.LazyPagingItems
+import app.cash.paging.compose.collectAsLazyPagingItems
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import com.calvin.box.movie.api.config.VodConfig
 import com.calvin.box.movie.bean.Class
 import com.calvin.box.movie.bean.Vod
 import com.calvin.box.movie.model.VideoModel
 import com.calvin.box.movie.navigation.LocalNavigation
 import com.calvin.box.movie.screens.EmptyScreenContent
 import com.calvin.box.movie.ui.screens.tabsview.HomeTabViewModel
+import com.calvin.box.movie.utils.UrlProcessor
 import io.github.aakira.napier.Napier
+import io.kamel.core.utils.cacheControl
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import io.ktor.client.request.header
+import io.ktor.client.utils.CacheControl
 import moviebox.composeapp.generated.resources.Res
 import moviebox.composeapp.generated.resources.ic_home_tab
 import org.jetbrains.compose.resources.painterResource
 
 data class VodListScreen(val category: Class, val viewModel: HomeTabViewModel) : Tab {
+
+    private val objectsFlow =  viewModel.loadPagingDataFLow(category)
+
+
     @Composable
     override fun Content() {
         val navigator = LocalNavigation.current
-        val homeResult by viewModel.homeResult.collectAsState()
-        val categoryVodList by viewModel.loadCategoryContent(category).collectAsState(emptyList())
-        val objects =  if(category.typeId == "Home") {homeResult.list} else {categoryVodList}
+        val objects = objectsFlow.collectAsLazyPagingItems()
+        Napier.d { "invoke vodListScreen content" }
 
-        AnimatedContent(objects.isNotEmpty()) { objectsAvailable ->
+        AnimatedContent(objects.itemCount>0) { objectsAvailable ->
             if (objectsAvailable) {
                 ObjectGrid(
                     objects = objects,
                     onObjectClick = { vodObj ->
                         Napier.d { "vod item clicked" }
+                        val homeSiteKey = VodConfig.get().getHome()?.key
                         val videoModel = VideoModel(id = vodObj.vodId, description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
-                            subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName)
+                            subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName, siteKey = homeSiteKey)
                         navigator.goToVideoPlayerScreen(videoModel)
                     }
                 )
@@ -76,7 +88,7 @@ data class VodListScreen(val category: Class, val viewModel: HomeTabViewModel) :
 
 @Composable
 private fun ObjectGrid(
-    objects: List<Vod>,
+    objects: LazyPagingItems<Vod>,
     onObjectClick: (Vod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -86,11 +98,13 @@ private fun ObjectGrid(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp)
     ) {
-        items(objects, key = { it.vodId }) { obj ->
-            ObjectFrame(
-                obj = obj,
-                onClick = { onObjectClick(obj) },
-            )
+        items(objects.itemCount, /*key = { it.ifEmpty { it.vodPic } }*/) { index ->
+            objects[index]?.let {
+                ObjectFrame(
+                    obj = it,
+                    onClick = { onObjectClick(it) },
+                )
+            }
         }
     }
 }
@@ -106,8 +120,19 @@ private fun ObjectFrame(
             .padding(8.dp)
             .clickable { onClick() }
     ) {
+        val url = obj.vodPic
+        val (processedUrl, headers) = remember(url) { UrlProcessor.processUrl(url) }
+        //Napier.d { "processedUrl: $processedUrl, headers: $headers" }
         KamelImage(
-            resource = asyncPainterResource(data = obj.vodPic),
+            resource = asyncPainterResource(data = processedUrl){
+                requestBuilder { // this: HttpRequestBuilder
+                    for(h in headers){
+                        header(h.key, h.value)
+                    }
+                   // parameter("Key", "Value")
+                    cacheControl(CacheControl.MAX_AGE)
+                }
+            },
             contentDescription = obj.vodName,
             contentScale = ContentScale.Crop,
             modifier = Modifier

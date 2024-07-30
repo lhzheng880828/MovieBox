@@ -29,6 +29,7 @@ import org.koin.dsl.module
 import org.koin.dsl.KoinAppDeclaration
 
 import com.calvin.box.movie.getDataFactory
+import com.calvin.box.movie.ui.screens.videoplayerview.VideoPlayerViewModel
 
 val dataModule = module {
     single {
@@ -75,6 +76,7 @@ val screenModelsModule = module {
     factoryOf(::DiceViewModel)
     factoryOf(::SettingsViewModel)
     factoryOf(::HomeTabViewModel)
+    factoryOf ( ::VideoPlayerViewModel )
 
 }
 

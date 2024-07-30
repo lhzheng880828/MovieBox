@@ -28,6 +28,7 @@ import com.github.catvod.crawler.SpiderNull
 import com.github.catvod.net.OkHttp
 import com.github.catvod.utils.Asset
 import com.github.catvod.utils.Path
+import com.github.catvod.utils.Trans
 import com.github.catvod.utils.Util
 import dalvik.system.DexClassLoader
 import io.github.aakira.napier.Napier
@@ -248,7 +249,7 @@ class AndroidSpiderLoader: SpiderLoader {
         val extend: HashMap<String, String>  = category.getExtend(false)
         if (homeSite.type == 3) {
             val spider: Spider = getSpider(homeSite) as Spider
-            Napier.d { "#loadCategory, spider: $spider" }
+           // Napier.d { "#loadCategory, spider: $spider" }
             val categoryContent = spider.categoryContent(category.typeId, page, filter, extend)
             //SpiderDebug.log(categoryContent)
             Napier.d { "#loadcategoryContent, categoryContent: $categoryContent" }
@@ -270,8 +271,7 @@ class AndroidSpiderLoader: SpiderLoader {
     }
 
 
-    override suspend fun loadDetailContent(homeSite: Site, vodId: String, coroutineScope: CoroutineScope): Result {
-        val site: Site = homeSite//VodConfig.get().getSite(key)
+    override suspend fun loadDetailContent(site: Site, vodId: String): Result {
         if (site.type == 3) {
             val spider: Spider = getSpider(site) as Spider
             val detailContent = spider.detailContent(listOf(vodId))
@@ -279,10 +279,10 @@ class AndroidSpiderLoader: SpiderLoader {
              setRecent(site)
             val result = Result.fromJson(detailContent)
             if (result.list.isNotEmpty()) result.list[0].setVodFlags()
-            if (result.list.isNotEmpty()) Source.parse(coroutineScope, result.list[0].vodFlags)
+            if (result.list.isNotEmpty()) Source.parse(result.list[0].vodFlags)
             return result
         } else if (site.isEmpty() && "push_agent" == site.key) {
-            val vod: Vod = Vod()
+            val vod = Vod()
             vod.vodId = vodId
             vod.vodName = vodId
             vod.vodPic = pushImage//(ResUtil.getString(R.string.push_image))
@@ -292,8 +292,7 @@ class AndroidSpiderLoader: SpiderLoader {
                     "Play",//ResUtil.getString(R.string.play),
                     vodId
                 )
-
-            Source.parse(coroutineScope, vod.vodFlags)
+            Source.parse(vod.vodFlags)
             return Result.vod(vod)
         } else {
             val params = ArrayMap<String, String>()
@@ -303,7 +302,7 @@ class AndroidSpiderLoader: SpiderLoader {
             SpiderDebug.log(detailContent)
             val result = Result.fromType(site.type, detailContent)
             if (result.list.isNotEmpty()) result.list[0].setVodFlags()
-            if (result.list.isNotEmpty()) Source.parse(coroutineScope, result.list[0].vodFlags)
+            if (result.list.isNotEmpty()) Source.parse(result.list[0].vodFlags)
             return result
         }
     }
@@ -368,6 +367,30 @@ class AndroidSpiderLoader: SpiderLoader {
         }
     }
 
+    override suspend fun loadSearchContent(
+        site: Site,
+        keyword: String,
+        quick: Boolean,
+        page: String
+    ): Result {
+        if (site.type == 3) {
+            val spider: Spider = getSpider(site) as Spider
+            val searchContent = spider.searchContent(Trans.t2s(keyword), quick, page)
+            SpiderDebug.log(site.name + "," + searchContent)
+            val result = Result.fromJson(searchContent)
+            for (vod in result.list) vod.site = site
+            return result
+        } else {
+            val params = ArrayMap<String, String>()
+            params["wd"] = Trans.t2s(keyword)
+            params["pg"] = page
+            val searchContent = call(site, params, true)
+            SpiderDebug.log(site.name + "," + searchContent)
+            val result = fetchPic(site, Result.fromType(site.type, searchContent))
+            for (vod in result.list) vod.site = site
+            return result
+        }
+    }
 
 
     private fun getOKhttpHeaders(header: JsonElement?): Headers {

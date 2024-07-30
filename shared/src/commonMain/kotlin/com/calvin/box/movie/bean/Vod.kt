@@ -159,8 +159,15 @@ data class Vod @OptIn(ExperimentalSerializationApi::class) constructor(
     }
 
     override fun toString(): String {
-        return "Vod(vodName='$vodName', vodId='$vodId', typeName='$typeName')"
+        return "Vod(vodId='$vodId', vodName='$vodName', typeName='$typeName', vodPic='$vodPic', vodRemarks='$vodRemarks', vodYear='$vodYear', vodArea='$vodArea', vodDirector='$vodDirector', vodActor='$vodActor', vodContent='$vodContent', vodPlayFrom='$vodPlayFrom', vodPlayUrl='$vodPlayUrl', vodTag='$vodTag', cate=$cate, style=$style, land=$land, circle=$circle, ratio=$ratio, vodFlags=$vodFlags, site=$site)"
     }
+
+    /* override fun toString(): String {
+         return "Vod(vodName='$vodName', vodId='$vodId', typeName='$typeName')"
+     }*/
+
+
+
 
 }
 

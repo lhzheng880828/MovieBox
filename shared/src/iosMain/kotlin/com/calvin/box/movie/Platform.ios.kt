@@ -146,12 +146,21 @@ class IosSpiderLoader: SpiderLoader {
     override suspend fun loadDetailContent(
         homeSite: Site,
         vodId: String,
-        coroutineScope: CoroutineScope
+
     ): Result {
         TODO("Not yet implemented")
     }
 
     override suspend fun loadPlayerContent(site: Site, vodId: String, vodFlag: String): Result {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun loadSearchContent(
+        site: Site,
+        keyword: String,
+        quick: Boolean,
+        page: String
+    ): Result {
         TODO("Not yet implemented")
     }
 }

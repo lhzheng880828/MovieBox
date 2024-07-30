@@ -15,7 +15,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
 
@@ -88,13 +87,15 @@ interface SpiderLoader{
     suspend fun clear()
     fun writeWallPaper(localPath:String, url:String):Boolean
 
-    suspend fun loadHomeContent(homeSite:Site):Result
+    suspend fun loadHomeContent(site:Site):Result
 
-    suspend fun loadCategoryContent(homeSite:Site, category:Class, page:String = "1", filter:Boolean = true):Result
+    suspend fun loadCategoryContent(site:Site, category:Class, page:String = "1", filter:Boolean = true):Result
 
-    suspend fun loadDetailContent(homeSite:Site,vodId:String, coroutineScope: CoroutineScope):Result
+    suspend fun loadDetailContent(site:Site, vodId:String):Result
 
     suspend fun loadPlayerContent(site: Site, vodId:String, vodFlag: String):Result
+
+    suspend fun loadSearchContent(site: Site, keyword:String, quick:Boolean, page: String):Result
 }
 
 expect fun getSpiderLoader(): SpiderLoader

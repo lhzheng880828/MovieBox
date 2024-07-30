@@ -104,7 +104,9 @@ kotlin {
 
             implementation(libs.compose.ui.unit)
             implementation(libs.chaintech.sdp.compose.multiplatform)
-            //implementation(libs.compose.ui)
+            implementation(libs.paging.common)
+            implementation(libs.paging.compose.common)
+
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

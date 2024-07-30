@@ -110,7 +110,7 @@ fun SwipeableTabLayout(viewModel: HomeTabViewModel) {
     for (category in categories){
         Napier.d { "loop category: $category" }
         if(category.typeId.isEmpty()) category.typeId = category.typeName
-        viewModel.loadCategoryContent(category)
+        viewModel.loadCategoryContent(category, pageNum = "1")
         tabs.add(VodListScreen(category,viewModel))
     }
     tabs.add(0, VodListScreen(Class(typeId =  "Home", typeName = "推荐"), viewModel))

@@ -9,6 +9,8 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import com.calvin.box.movie.model.Fruittie
 import com.calvin.box.movie.screens.fruitties.FruittieItem
+import com.calvin.box.movie.xlab.BottomSheetExample
+import com.calvin.box.movie.xlab.MovieDetailScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,7 +19,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             //MovieApp()
             //ThemeApp()
+
+            //SearchApp()
             DarkmovieMainView()
+            //MovieDetailScreen()
         }
     }
 }
@@ -27,4 +32,10 @@ class MainActivity : ComponentActivity() {
 fun AppAndroidPreview() {
     //MovieApp()
     FruittieItem(item = Fruittie(name="apple", fullName = "Red apple", calories = "apple calories"), onAddToCart = {})
+}
+
+@Preview(name = "Light Mode",  device = Devices.PIXEL_4)
+@Composable
+fun BottomSheetPreview(){
+    BottomSheetExample()
 }
