@@ -15,6 +15,7 @@ import com.github.catvod.utils.Util
 import com.google.common.net.HttpHeaders
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.Response.IStatus
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -42,6 +43,7 @@ class Nano(port: Int) : NanoHTTPD(port) {
         var url = session.uri.trim { it <= ' ' }
         val files: Map<String, String> = HashMap()
         if (session.method == Method.POST) parse(session, files)
+        Napier.d { "#serve request url: $url" }
         if (url.contains("?")) url = url.substring(0, url.indexOf('?'))
         if (url.startsWith("/go")) return go()
         if (url.startsWith("/proxy")) return runBlocking {  proxy(session) }
@@ -99,6 +101,9 @@ class Nano(port: Int) : NanoHTTPD(port) {
             params.putAll(session.headers)
             val rs: Array<Any> = getSpiderLoader().proxyLocal(params) ?: return error("proxy is empty")
 
+            for (it in rs){
+                Napier.d { "#proxy loop: $it"  }
+            }
 
             if (rs[0] is Response) return rs[0] as Response
             val response = newChunkedResponse(

@@ -39,8 +39,8 @@ data class Result(
     companion object {
         val json:Json = Json { ignoreUnknownKeys = true }
 
-        fun fromJson(str: String): Result {
-            if(str.isEmpty()){
+        fun fromJson(str: String?): Result {
+            if(str.isNullOrEmpty()){
                 return empty()
             }
             return try {

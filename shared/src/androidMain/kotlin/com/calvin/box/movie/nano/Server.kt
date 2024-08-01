@@ -2,8 +2,10 @@ package com.calvin.box.movie.nano
 
 import com.calvin.box.movie.AndroidPlayers
 import com.calvin.box.movie.player.Players
+import com.calvin.box.movie.pref.AndroidPref
 import com.github.catvod.Proxy
 import com.github.catvod.utils.Util
+import io.github.aakira.napier.Napier
 import kotlin.concurrent.Volatile
 
 class Server {
@@ -39,8 +41,11 @@ class Server {
                 nano = Nano(port)
                 Proxy.set(port)
                 nano!!.start()
+                AndroidPref.put("proxy", "127.0.0.1:$port")
+                Napier.d { "#start, put proxy value into preference" }
                 break
             } catch (e: Exception) {
+                e.printStackTrace()
                 ++port
                 nano!!.stop()
                 nano = null

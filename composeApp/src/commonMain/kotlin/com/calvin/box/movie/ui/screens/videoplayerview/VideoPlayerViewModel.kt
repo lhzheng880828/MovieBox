@@ -53,33 +53,43 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
                     return@launch
                 }
                 val vodList = mutableListOf<Vod>()
-                val timeoutDuration = 5000L // 设置超时时间，5秒
-
-                val deferredResults = matchedSites.map { matchedSite ->
-                    async {
-                        try {
-                            withTimeout(timeoutDuration) {
-                                movieRepo.loadSearchContent(matchedSite, vodName, true, "1").list
-                            }
-                        } catch (e: TimeoutCancellationException) {
-                            emptyList() // 处理超时情况
-                        } catch (e: Exception) {
-                            emptyList() // 处理其他异常情况
-                        }
+                try {
+                    for (matchedSite in matchedSites){
+                       val loopVodList = movieRepo.loadSearchContent(matchedSite, vodName, true, "1").list
+                        vodList.addAll(loopVodList)
                     }
+                } catch (e: Exception) {
+                     e.printStackTrace()
                 }
+                /* val timeoutDuration = 5000L // 设置超时时间，5秒
+                 val deferredResults = matchedSites.map { matchedSite ->
+                     async {
+                         try {
+                             withTimeout(timeoutDuration) {
+                                 movieRepo.loadSearchContent(matchedSite, vodName, true, "1").list
+                             }
+                         } catch (e: TimeoutCancellationException) {
+                             emptyList() // 处理超时情况
+                         } catch (e: Exception) {
+                             emptyList() // 处理其他异常情况
+                         }
+                     }
+                 }
 
-                deferredResults.forEach { deferred ->
-                    try {
-                        val result = deferred.await()
-                        vodList.addAll(result)
-                    } catch (e: Exception) {
-                        // Handle any exceptions that might occur during await
-                    }
-                }
+                 deferredResults.forEach { deferred ->
+                     try {
+                         val result = deferred.await()
+                         vodList.addAll(result)
+                     } catch (e: Exception) {
+                         // Handle any exceptions that might occur during await
+                     }
+                 }*/
 
                 if(vodList.isNotEmpty()){
-                    _uiState.value = UiState.Success(DetailDataCombine(detail = vodList[0], siteList = vodList))
+                    val vodOne = vodList[0]
+                    val result =  movieRepo.loadVodDetailContent(vodOne.site!!, vodOne.vodId)
+                    val vodDetail = result.list.first()
+                    _uiState.value = UiState.Success(DetailDataCombine(detail = vodDetail, siteList = vodList))
                 } else {
                     _uiState.value = UiState.Empty
                 }

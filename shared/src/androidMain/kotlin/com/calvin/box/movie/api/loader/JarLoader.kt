@@ -37,6 +37,7 @@ class JarLoader {
     }
 
     fun setRecent(recent: String) {
+        Napier.d{"#setRecent, recent: $recent"}
         this.recent = recent
     }
 
@@ -76,7 +77,7 @@ class JarLoader {
     }
 
      fun parseJar(key: String, spiderStr: String)  {
-         Napier.d{"#parseJar, key: $key, spider: $spiderStr"}
+         Napier.d{"#parseJar, enter params key: $key, spiderStr: $spiderStr"}
         if (key in loaders) return
         val (jarUrl, md5) = spiderStr.split(";md5;").let {
             it[0] to (it.getOrNull(1)?.trim() ?: "")
@@ -112,7 +113,8 @@ class JarLoader {
                 spider?.init( ContextProvider.context as Context, ext)
                 spider ?: SpiderNull()
             } catch (e: Throwable) {
-                e.printStackTrace()
+                //e.printStackTrace
+                Napier.w { "getSpider error: ${e.message}" }
                 SpiderNull()
             }
         }
@@ -132,7 +134,10 @@ class JarLoader {
 
     suspend fun proxyInvoke(params: Map<String, String>): Array<Any>? = mutex.withLock {
         try {
-            val method = methods[Util.md5(recent)]
+            val spiderKey = Util.md5(recent)
+            Napier.d { "#proxyInvoke, spiderKey: $spiderKey" }
+            val method = methods[spiderKey]
+            Napier.d { "#proxyInvoke, method: $method" }
             return method?.invoke(null, params) as? Array<Any>
         } catch (e: Throwable) {
             e.printStackTrace()

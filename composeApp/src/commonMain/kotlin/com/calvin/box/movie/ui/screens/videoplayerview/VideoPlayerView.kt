@@ -94,6 +94,21 @@ private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:Vide
 
         Napier.d { "detail: $detail, siteList: ${list.size}" }
     }
+
+
+    if(detailUiState is UiState.Loading || detailUiState is UiState.Initial){
+        Text("loading detail")
+        return
+    }
+    if (detailUiState is UiState.Empty){
+        Text("video detail empty")
+        return
+    }
+    if(detailUiState is UiState.Error){
+        Text("video detail load error")
+        return
+    }
+
     val navigator = LocalNavigation.current
     var video by remember { mutableStateOf(currentVideo) }
 

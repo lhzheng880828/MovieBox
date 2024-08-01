@@ -98,6 +98,8 @@ interface SpiderLoader{
     suspend fun loadSearchContent(site: Site, keyword:String, quick:Boolean, page: String):Result
 }
 
+var spiderLoader: SpiderLoader? = null
+
 expect fun getSpiderLoader(): SpiderLoader
 
 

@@ -7,6 +7,7 @@ import com.calvin.box.movie.getSpiderLoader
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderNull
 import dalvik.system.DexClassLoader
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -24,6 +25,7 @@ class JsLoader {
     }
 
     fun setRecent(recent: String) {
+        Napier.d{"#setRecent, recent: $recent"}
         this.recent = recent
     }
 
@@ -50,6 +52,7 @@ class JsLoader {
 
     private suspend fun find(params: Map<String, String>): Spider = mutex.withLock {
         val siteKey = params["siteKey"]
+        Napier.d{"#find, siteKey: $siteKey"}
         return if (siteKey == null) {
             spiders[recent] ?: SpiderNull()
         } else {
