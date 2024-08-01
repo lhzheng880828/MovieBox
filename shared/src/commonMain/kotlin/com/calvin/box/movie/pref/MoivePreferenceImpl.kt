@@ -66,6 +66,10 @@ class MoivePreferenceImpl(
     override val player: Preference<Int> by lazy {
         IntPreference(KEY_PLAYER, Players.EXO)
     }
+
+    override fun decode(player: Int):Preference<Int> {
+        return IntPreference(KEY_DECODE_PREFIX+player, Players.EXO)
+    }
     override val playerLive: Preference<Int> by lazy {
         IntPreference(KEY_PLAYER_LIVE, 0/*getPlayer()*/)
     }
@@ -423,6 +427,7 @@ interface BasePreference {
     val wall: Preference<Int>
     val reset: Preference<Int>
     val player: Preference<Int>
+     fun decode(player: Int): Preference<Int>
     val playerLive: Preference<Int>
     val render: Preference<Int>
     val quality: Preference<Int>

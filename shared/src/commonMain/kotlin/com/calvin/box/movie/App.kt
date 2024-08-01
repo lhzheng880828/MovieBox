@@ -3,10 +3,15 @@ package com.calvin.box.movie
 object App {
 
     fun execute(runnable: () -> Unit){
+        runnable.invoke()
     }
 
     fun post(runnable: () -> Unit){
+        runnable.invoke()
+    }
 
+    fun get():Any {
+        return ContextProvider.context
     }
 
 }

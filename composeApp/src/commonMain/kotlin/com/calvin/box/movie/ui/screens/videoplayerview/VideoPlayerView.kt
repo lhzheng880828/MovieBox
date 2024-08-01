@@ -18,6 +18,12 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -66,9 +73,10 @@ class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
         val vodDetailModel:VideoPlayerViewModel = getScreenModel()
         val siteKey = currentVideo.siteKey
         val vodId = currentVideo.id
+        val vodName = currentVideo.title
         if(!siteKey.isNullOrEmpty()){
             val site =VodConfig.get().getSite(siteKey )
-            vodDetailModel.getVodDetail(site, vodId)
+            vodDetailModel.getVodDetail(site, vodId, vodName)
             VideoPlayerContentView(currentVideo, vodDetailModel)
         }
 
@@ -78,8 +86,14 @@ class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
 @Composable
 private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:VideoPlayerViewModel) {
 
-      val vodDetail by vodDetailModel.vodDetail.collectAsState()
-    Napier.d { "vodDetail: $vodDetail" }
+      val detailUiState by vodDetailModel.uiState.collectAsState()
+    Napier.d { "detailUiState: $detailUiState" }
+    if(detailUiState is UiState.Success){
+        val detail = (detailUiState as UiState.Success).data.detail
+        val list = (detailUiState as UiState.Success).data.siteList
+
+        Napier.d { "detail: $detail, siteList: ${list.size}" }
+    }
     val navigator = LocalNavigation.current
     var video by remember { mutableStateOf(currentVideo) }
 
@@ -251,30 +265,31 @@ private fun downLoadView() {
         horizontalArrangement = Arrangement.spacedBy(20.sdp)
     ) {
 
-        downloadItem(Res.drawable.icn_add, "Watchlist")
+        downloadItem(Icons.Outlined.Add, "Watchlist")
 
-        downloadItem(Res.drawable.icn_share, "Share", size = 16.sdp)
+        downloadItem(Icons.Outlined.Share, "Share", size = 16.sdp)
 
-        downloadItem(Res.drawable.icn_download, "Download")
+        downloadItem(Icons.Outlined.Download, "Download")
 
     }
 }
 
 @Composable
 private fun downloadItem(
-    image: DrawableResource,
+    image: ImageVector,
     title: String,
     size: Dp = 19.sdp) {
     Column(
         modifier = Modifier. height(32.sdp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        FromLocalDrawable(
+       /* FromLocalDrawable(
             painterResource = image,
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .size(size)
-        )
+        )*/
+        Icon(image, contentDescription = title)
 
         Spacer(modifier = Modifier.weight(1f))
 

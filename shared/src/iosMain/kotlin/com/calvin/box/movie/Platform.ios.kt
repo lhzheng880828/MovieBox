@@ -209,3 +209,16 @@ class IosDataFactory:DataFactory{
 
 }
 actual fun getDataFactory():DataFactory = IosDataFactory()
+
+
+class IosNanoServer:NanoServer{
+    override fun start() {
+        TODO("Not yet implemented")
+    }
+
+    override fun stop() {
+        TODO("Not yet implemented")
+    }
+}
+
+actual fun getNanoServer():NanoServer  = IosNanoServer()

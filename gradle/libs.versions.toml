@@ -47,8 +47,11 @@ wrapper-java = "1.0.0"
 android-retrofuture = "1.7.4"
 preference = "1.2.1"
 juniversalchardet = "1.0.3"
-
+nanohttpd = "2.3.1"
+androidx-media = "1.7.0"
 [libraries]
+androidx-media = {module = "androidx.media:media", version.ref = "androidx-media"}
+nanohttpd = {module = "org.nanohttpd:nanohttpd",version.ref = "nanohttpd" }
 paging-common = {module = "app.cash.paging:paging-common",version.ref = "androidx-paging3" }
 paging-compose-common = {module = "app.cash.paging:paging-compose-common",version.ref = "androidx-paging3"}
 wrapper-java = {module = "wang.harlon.quickjs:wrapper-java", version.ref = "wrapper-java"}

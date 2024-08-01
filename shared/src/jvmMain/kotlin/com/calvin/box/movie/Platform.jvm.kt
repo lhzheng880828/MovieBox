@@ -175,3 +175,16 @@ class JvmDataFactory:DataFactory{
 }
 
 actual fun getDataFactory():DataFactory = JvmDataFactory()
+
+
+class JvmNanoServer:NanoServer{
+    override fun start() {
+        TODO("Not yet implemented")
+    }
+
+    override fun stop() {
+        TODO("Not yet implemented")
+    }
+}
+
+actual fun getNanoServer():NanoServer  = JvmNanoServer()

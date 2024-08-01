@@ -17,7 +17,7 @@ class movieApplication : Application() {
                 single { Factory() }
             }*/
         })
-
+        getNanoServer().start()
     }
 
 }

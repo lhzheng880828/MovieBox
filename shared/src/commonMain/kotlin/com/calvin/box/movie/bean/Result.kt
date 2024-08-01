@@ -40,6 +40,9 @@ data class Result(
         val json:Json = Json { ignoreUnknownKeys = true }
 
         fun fromJson(str: String): Result {
+            if(str.isEmpty()){
+                return empty()
+            }
             return try {
                 json.decodeFromString(str)
             } catch (e: Exception) {

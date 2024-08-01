@@ -101,6 +101,13 @@ interface SpiderLoader{
 expect fun getSpiderLoader(): SpiderLoader
 
 
+interface NanoServer {
+    fun start()
+    fun stop()
+}
+
+expect fun getNanoServer(): NanoServer
+
 
  interface DataFactory {
     fun createRoomDatabase(): MoiveDatabase

@@ -63,8 +63,12 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.room.paging)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.nanohttpd)
+            implementation(libs.androidx.media)
             implementation(projects.extproject.catvod)
             implementation(projects.extproject.quickjs)
+            implementation(projects.extproject.quickjs)
+
 
 
         }

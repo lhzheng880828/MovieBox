@@ -366,7 +366,7 @@ class VodConfig {
             return get().getParses().isNotEmpty()
         }
 
-        suspend fun load(config: Config, callback: Callback?) {
+        fun load(config: Config, callback: Callback?) {
            // get().clear().config(config).load(callback)
         }
     }
