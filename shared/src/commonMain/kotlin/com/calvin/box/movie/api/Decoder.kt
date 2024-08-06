@@ -31,7 +31,7 @@ object Decoder {
     }
 
     private fun extractJsonString(input: String): String {
-        val stringBuilder = StringBuilder()
+        /*val stringBuilder = StringBuilder()
         var openBraces = 0
         var insideJson = false
 
@@ -58,7 +58,12 @@ object Decoder {
             jsonString
         } else {
             "No valid JSON object found"
-        }
+        }*/
+        // 移除单行注释
+        val noSingleLineComments = input.replace(Regex("(?<!:)//.*"), "")
+        // 移除多行注释
+        val noComments = noSingleLineComments.replace(Regex("/\\*[\\s\\S]*?\\*/"), "")
+        return noComments
     }
 
     private fun fix(url: String, data: String): String {

@@ -1,8 +1,12 @@
 package com.calvin.box.movie.navigation
 
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
+import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.bottomSheet.BottomSheetNavigator
 import com.calvin.box.movie.model.VideoModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -27,10 +31,12 @@ class NavigationProvider : Navigation {
             nav.popUntilRoot()
         }
     }
+    @OptIn(InternalVoyagerApi::class, ExperimentalMaterialApi::class)
     override fun goToVideoPlayerScreen(currentVideo: VideoModel): Boolean {
         return tryAction { nav ->
             screenContainer.value?.goToVideoPlayerScreen(currentVideo)?.let {
                 nav.push(it)
+
             }
         }
     }
@@ -45,6 +51,17 @@ class NavigationProvider : Navigation {
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+
+    @Composable
+    @OptIn(ExperimentalMaterialApi::class)
+    fun BottomSheetNavigatorContent(
+        bottomSheetNavigator: BottomSheetNavigator,
+        content: @Composable () -> Unit
+    ) {
+        BottomSheetNavigator {
+            content()
         }
     }
 }

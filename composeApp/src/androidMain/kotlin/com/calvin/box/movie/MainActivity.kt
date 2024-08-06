@@ -10,7 +10,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.calvin.box.movie.model.Fruittie
 import com.calvin.box.movie.screens.fruitties.FruittieItem
 import com.calvin.box.movie.xlab.BottomSheetExample
-import com.calvin.box.movie.xlab.MovieDetailScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,10 +18,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             //MovieApp()
             //ThemeApp()
-
             //SearchApp()
-            DarkmovieMainView()
+            MyMovieApp()
             //MovieDetailScreen()
+            //com.calvin.box.movie.xlab.SearchScreen()
+            //MovieFilterScreen()
+            //MovieSearchScreen()
+            //PhotosGrid()
+            //MovieHistoryScreen()
         }
     }
 }

@@ -285,7 +285,7 @@ class AndroidSpiderLoader: SpiderLoader {
         if (site.type == 3) {
             val spider: Spider = getSpider(site) as Spider
             val detailContent = spider.detailContent(listOf(vodId))
-            SpiderDebug.log(detailContent)
+            SpiderDebug.log("#loadDetailContent: type3 $detailContent")
              setRecent(site)
             val result = Result.fromJson(detailContent)
             if (result.list.isNotEmpty()) result.list[0].setVodFlags()
@@ -309,7 +309,7 @@ class AndroidSpiderLoader: SpiderLoader {
             params["ac"] = if (site.type == 0) "videolist" else "detail"
             params["ids"] = vodId
             val detailContent = call(site, params, true)
-            SpiderDebug.log(detailContent)
+            SpiderDebug.log("#loadDetailContent: type99 $detailContent")
             val result = Result.fromType(site.type, detailContent)
             if (result.list.isNotEmpty()) result.list[0].setVodFlags()
             if (result.list.isNotEmpty()) Source.parse(result.list[0].vodFlags)
@@ -325,7 +325,7 @@ class AndroidSpiderLoader: SpiderLoader {
         if (site.type == 3) {
             val spider: Spider =  getSpider(site) as Spider
             val playerContent = spider.playerContent(flag, id, VodConfig.get().getFlags())
-            SpiderDebug.log(playerContent)
+            SpiderDebug.log("#loadPlayerContent: type3 $playerContent")
              setRecent(site)
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = vodFlag
@@ -338,7 +338,7 @@ class AndroidSpiderLoader: SpiderLoader {
             params["play"] = id
             params["flag"] = flag
             val playerContent = call(site, params, true)
-            SpiderDebug.log(playerContent)
+            SpiderDebug.log("#loadPlayerContent: type4 $playerContent")
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = (flag)
             result.setUrl(Source.fetch(result))
@@ -355,7 +355,6 @@ class AndroidSpiderLoader: SpiderLoader {
             var url: Url? = Url.create().add(id)
             val type = Uri.parse(id).getQueryParameter("type")
             if ("json" == type) {
-
                 val result = OkHttp.newCall(id, getOKhttpHeaders(site.header)).execute().body?.let {
                     Result.fromJson(
                         it.string())

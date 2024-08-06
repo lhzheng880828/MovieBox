@@ -96,6 +96,7 @@ interface SpiderLoader{
     suspend fun loadPlayerContent(site: Site, vodId:String, vodFlag: String):Result
 
     suspend fun loadSearchContent(site: Site, keyword:String, quick:Boolean, page: String):Result
+
 }
 
 var spiderLoader: SpiderLoader? = null

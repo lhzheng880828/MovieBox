@@ -69,6 +69,10 @@ class MovieDataRepository (
         return spiderLoader.loadSearchContent(site, keyword, quick, page)
     }
 
+    suspend fun loadPlayerContent(site: Site, flag:String, url: String):Result{
+        return spiderLoader.loadPlayerContent(site, url, flag)
+    }
+
     val vodList:Flow<List<Vod>> = emptyFlow()
 
 }

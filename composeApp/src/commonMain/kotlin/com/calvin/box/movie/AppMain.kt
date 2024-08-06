@@ -5,9 +5,18 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.*
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -24,6 +33,8 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabDisposable
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import cafe.adriel.voyager.transitions.SlideTransition
+import com.calvin.box.movie.feature.followed.FollowedScreen
+import com.calvin.box.movie.feature.history.HistoryScreen
 import com.calvin.box.movie.feature.settings.SettingsScreen
 import com.calvin.box.movie.font.FontType
 import com.calvin.box.movie.font.MediaFont
@@ -41,7 +52,7 @@ import io.github.aakira.napier.Napier
 import network.chaintech.sdpcomposemultiplatform.sdp
 
 @Composable
-fun DarkmovieMainView() {
+fun MyMovieApp() {
     MyApplicationTheme {
         val navigation = remember { NavigationProvider() }
         val screenContainer = remember { ScreenContainerProvider() }
@@ -49,7 +60,7 @@ fun DarkmovieMainView() {
             LocalScreenContainer provides screenContainer,
             LocalNavigation provides navigation,
         ) {
-            Napier.i {  "enter compositionProvider" }
+            Napier.i { "enter compositionProvider" }
             TabNavigator(
                 HomeTab,
                 tabDisposable = {
@@ -59,7 +70,7 @@ fun DarkmovieMainView() {
                     )
                 }
             ) {
-                Napier.i {  "enter Navigator" }
+                Napier.i { "enter Navigator" }
                 Navigator(HomeScreen()) {
                     navigation.initialize()
                     SlideTransition(it)
@@ -73,7 +84,7 @@ class HomeScreen : Screen {
 
     @Composable
     override fun Content() {
-        Napier.i {  "enter homeScreen" }
+        Napier.i { "enter homeScreen" }
         val nv = LocalNavigator.currentOrThrow
         Scaffold(
             modifier = Modifier
@@ -93,13 +104,18 @@ class HomeScreen : Screen {
                     TabNavigationItem(tab = MusicTab)
                 }
             },
-            topBar = { RootScreenAppBar("Home", false,
-                onRefreshActionClick = {},
-                onSettingsActionClick = {
-                   nv.push(SettingsScreen())
-                } ) },
+            topBar = {
+                RootScreenAppBar("Home", false,
+                    onRefreshActionClick = {},
+                    onFavoriteActionClick = { nv.push(FollowedScreen()) },
+                    onHistoryActionClick = { nv.push(HistoryScreen()) },
+                    onSettingsActionClick = {
+                        nv.push(SettingsScreen())
+                    }
+                )
+            },
 
-        ) {
+            ) {
 
             CurrentTab()
         }
@@ -107,20 +123,20 @@ class HomeScreen : Screen {
 }
 
 
-
 // Copyright 2021, Google LLC, Christopher Banes and the Tivi project contributors
 // SPDX-License-Identifier: Apache-2.0
-
 
 
 @Composable
 fun RootScreenAppBar(
     title: String,
-   // loggedIn: Boolean,
+    // loggedIn: Boolean,
     //user: TraktUser?,
     refreshing: Boolean,
-    onRefreshActionClick: () -> Unit ,
-    onSettingsActionClick: () -> Unit ,
+    onRefreshActionClick: () -> Unit,
+    onFavoriteActionClick: () -> Unit,
+    onHistoryActionClick: () -> Unit,
+    onSettingsActionClick: () -> Unit,
     modifier: Modifier = Modifier,
     //scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
@@ -143,12 +159,29 @@ fun RootScreenAppBar(
                 }
             }
 
-           /* UserProfileButton(
-                loggedIn = loggedIn,
-                "",//user = user,
-                onClick = onUserActionClick,
-                modifier = Modifier.align(Alignment.CenterVertically),
-            )*/
+            /* UserProfileButton(
+                 loggedIn = loggedIn,
+                 "",//user = user,
+                 onClick = onUserActionClick,
+                 modifier = Modifier.align(Alignment.CenterVertically),
+             )*/
+            IconButton(
+                onClick = onFavoriteActionClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Favorite Button"
+                )
+            }
+            IconButton(
+                onClick = onHistoryActionClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.History,
+                    contentDescription = "History Button"
+                )
+            }
+
             IconButton(
                 onClick = onSettingsActionClick
             ) {
@@ -193,7 +226,7 @@ private fun RowScope.TabNavigationItem(tab: Tab) {
                 )
             }
         },
-       // selectedContentColor = Color.White,
-       // unselectedContentColor = MyApplicationTheme.colors.secondaryText
+        // selectedContentColor = Color.White,
+        // unselectedContentColor = MyApplicationTheme.colors.secondaryText
     )
 }

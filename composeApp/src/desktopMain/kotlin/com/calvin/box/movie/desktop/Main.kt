@@ -2,7 +2,7 @@ package com.calvin.box.movie.desktop
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.calvin.box.movie.DarkmovieMainView
+import com.calvin.box.movie.MyMovieApp
 import com.calvin.box.movie.di.Factory
 import com.calvin.box.movie.di.initKoin
 import io.github.aakira.napier.DebugAntilog
@@ -26,7 +26,7 @@ fun main(){
         ) {
            // movieApp()
            // ThemeApp()
-            DarkmovieMainView()
+            MyMovieApp()
         }
     }
 }

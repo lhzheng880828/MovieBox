@@ -6,6 +6,7 @@ import com.calvin.box.movie.api.config.VodConfig
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
 import com.calvin.box.movie.di.AppDataContainer
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.TimeoutCancellationException
@@ -89,6 +90,23 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
                     val vodOne = vodList[0]
                     val result =  movieRepo.loadVodDetailContent(vodOne.site!!, vodOne.vodId)
                     val vodDetail = result.list.first()
+                    vodDetail.site = vodOne.site
+                    val flags = vodDetail.vodFlags
+
+                    val flag = flags.get(0).flag
+
+                    val episode = flags.get(0).episodes.get(0)
+
+                    Napier.d { "vodSite: ${vodDetail.site}, flag: $flag, episode: $episode" }
+
+                   val playerResult = movieRepo.loadPlayerContent(vodDetail.site!!, flag, episode.url)
+
+                    Napier.d { "playerResult: $playerResult" }
+                    val realUrl = playerResult.getRealUrl()
+
+                    vodDetail.vodPlayUrl = realUrl
+
+
                     _uiState.value = UiState.Success(DetailDataCombine(detail = vodDetail, siteList = vodList))
                 } else {
                     _uiState.value = UiState.Empty

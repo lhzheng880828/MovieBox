@@ -55,11 +55,8 @@ object ResUtil {
         return resources.getDimensionPixelSize(resourceId)
     }
 
-    val screenWidth: Int
-        get() = displayMetrics.widthPixels
-
-    fun getScreenWidth(context: Context): Int {
-        return context.resources.displayMetrics.widthPixels
+    fun getScreenWidth(): Int {
+        return getContext().resources.displayMetrics.widthPixels
     }
 
     val screenWidthNav: Int
@@ -76,7 +73,7 @@ object ResUtil {
         get() = displayMetrics.heightPixels + getNavigationBarHeight(getContext() as Context)
 
     fun isEdge(e: MotionEvent, edge: Int): Boolean {
-        return e.getRawX() < edge || e.getRawX() > screenWidthNav - edge || e.getRawY() < edge || e.getRawY() > screenHeightNav - edge
+        return e.rawX < edge || e.rawX > screenWidthNav - edge || e.rawY < edge || e.rawY > screenHeightNav - edge
     }
 
     fun isLand(context: Context): Boolean {
@@ -84,7 +81,7 @@ object ResUtil {
     }
 
     val isPad: Boolean
-        get() = (getContext() as Context).getResources().getConfiguration().smallestScreenWidthDp >= 600
+        get() = getContext().resources.configuration.smallestScreenWidthDp >= 600
 
     fun sp2px(sp: Int): Int {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp.toFloat(), displayMetrics)

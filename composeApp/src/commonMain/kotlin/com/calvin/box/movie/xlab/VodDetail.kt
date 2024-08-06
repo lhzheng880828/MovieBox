@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -26,6 +28,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.bottomSheet.BottomSheetNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
+import com.calvin.box.movie.bean.Site
 import io.github.aakira.napier.Napier
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -195,13 +198,19 @@ fun MovieSites() {
             columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(sites) { site ->
-                Button(onClick = { /* TODO */ }) {
-                    Text(site)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            SiteItem(sites)
         }
+
+    }
+}
+
+
+fun LazyGridScope.SiteItem(sites:List<String>){
+    items(sites) { site ->
+        Button(onClick = { /* TODO */ }) {
+            Text(site)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

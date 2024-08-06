@@ -4,4 +4,8 @@ object Setting {
     fun getKeep(): String{
         return ""
     }
+
+    fun getSize(): Int {
+        return 0
+    }
 }

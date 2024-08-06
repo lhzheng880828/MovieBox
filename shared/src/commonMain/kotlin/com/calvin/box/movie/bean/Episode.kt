@@ -61,6 +61,9 @@ data class Episode(
     fun rule3(name: String): Boolean = this.name.lowercase().contains(name.lowercase())
 
     fun rule4(name: String): Boolean = name.lowercase().contains(this.name.lowercase())
+    override fun toString(): String {
+        return "Episode(name='$name', desc='$desc', url='$url', index=$index, number=$number, activated=$activated, selected=$selected)"
+    }
 
-   // fun equals(episode: Episode): Boolean = rule1(episode.name)
+
 }
