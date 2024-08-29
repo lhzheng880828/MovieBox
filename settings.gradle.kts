@@ -24,9 +24,10 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-        /*maven {
+       /* maven {
             setUrl("https://maven.aliyun.com/repository/public")
-        }
+        }*/
+        /*
         maven {
             setUrl("https://maven.aliyun.com/repository/gradle-plugin")
         }*/
@@ -39,6 +40,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven { setUrl("https://jitpack.io") }
     }
 }
 
@@ -47,3 +49,11 @@ include(":server")
 include(":shared")
 include(":extproject:catvod")
 include(":extproject:quickjs")
+include(":extproject:forcetech")
+include(":extproject:jianpian")
+include(":extproject:thunder")
+include(":extproject:tvbus")
+include(":extproject:youtube")
+
+include(":extproject:CatVodSpider:app")
+include(":extproject:CatVodSpider:tools")

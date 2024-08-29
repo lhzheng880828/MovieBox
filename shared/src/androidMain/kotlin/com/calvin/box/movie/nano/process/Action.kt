@@ -13,7 +13,7 @@ import com.calvin.box.movie.impl.Callback
 import com.calvin.box.movie.nano.Nano
 import com.calvin.box.movie.utils.FileUtil
 import com.calvin.box.movie.utils.Notify
-import com.github.catvod.net.OkHttp
+import com.github.catvod.net.HostOkHttp
 import com.github.catvod.utils.Path
 import fi.iki.elonen.NanoHTTPD
 import io.github.aakira.napier.Napier
@@ -182,8 +182,8 @@ class Action : Process {
             body.add("config", config.toString())
             val json = Json { ignoreUnknownKeys=true }
             body.add("targets", json.encodeToString(History.get(config.id)))
-            OkHttp.newCall(
-                OkHttp.client(Constant.TIMEOUT_SYNC),
+            HostOkHttp.newCall(
+                HostOkHttp.client(Constant.TIMEOUT_SYNC),
                 device.ip+("/action?do=sync&mode=0&type=history"),
                 body.build()
             ).execute()
@@ -198,8 +198,8 @@ class Action : Process {
             val json = Json { ignoreUnknownKeys=true }
             body.add("targets", json.encodeToString(Keep.getVod()))
             body.add("configs", json.encodeToString(Config.findUrls()))
-            OkHttp.newCall(
-                OkHttp.client(Constant.TIMEOUT_SYNC),
+            HostOkHttp.newCall(
+                HostOkHttp.client(Constant.TIMEOUT_SYNC),
                 device.ip.concat("/action?do=sync&mode=0&type=keep"),
                 body.build()
             ).execute()

@@ -3,7 +3,7 @@ package com.fongmi.quickjs.utils;
 import android.net.Uri;
 import android.util.Base64;
 
-import com.github.catvod.net.OkHttp;
+import com.github.catvod.net.HostOkHttp;
 import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Path;
 import com.google.common.net.HttpHeaders;
@@ -44,7 +44,7 @@ public class Module {
             Uri uri = Uri.parse(url);
             File file = Path.js(uri.getLastPathSegment());
             if (file.exists()) return Path.read(file);
-            Response response = OkHttp.newCall(url, Headers.of(HttpHeaders.USER_AGENT, "Mozilla/5.0")).execute();
+            Response response = HostOkHttp.newCall(url, Headers.of(HttpHeaders.USER_AGENT, "Mozilla/5.0")).execute();
             if (response.code() != 200) return "";
             byte[] data = response.body().bytes();
             boolean cache = !"127.0.0.1".equals(uri.getHost());

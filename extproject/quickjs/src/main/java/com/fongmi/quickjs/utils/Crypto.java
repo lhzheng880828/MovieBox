@@ -2,7 +2,7 @@ package com.fongmi.quickjs.utils;
 
 import android.util.Base64;
 
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.HostUtil;
 
 import java.security.Key;
 import java.security.KeyFactory;
@@ -21,7 +21,7 @@ public class Crypto {
 
     public static String md5(String text) {
         try {
-            return Util.md5(text);
+            return HostUtil.md5(text);
         } catch (Exception e) {
             e.printStackTrace();
             return "";

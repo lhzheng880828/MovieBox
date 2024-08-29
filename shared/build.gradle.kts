@@ -67,9 +67,11 @@ kotlin {
             implementation(libs.androidx.media)
             implementation(projects.extproject.catvod)
             implementation(projects.extproject.quickjs)
-            implementation(projects.extproject.quickjs)
-
-
+            implementation(projects.extproject.forcetech)
+            implementation(projects.extproject.jianpian)
+            implementation(projects.extproject.tvbus)
+            implementation(projects.extproject.thunder)
+            implementation(projects.extproject.youtube)
 
         }
         iosMain.dependencies {

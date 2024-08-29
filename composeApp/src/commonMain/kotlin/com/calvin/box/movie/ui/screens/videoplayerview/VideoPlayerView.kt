@@ -72,15 +72,17 @@ import network.chaintech.sdpcomposemultiplatform.sdp
 import network.chaintech.sdpcomposemultiplatform.ssp
 
 class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
+    private val siteKey = currentVideo.siteKey
+    private val vodId = currentVideo.id
+    private val vodName = currentVideo.title
+
+
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content() {
         val vodDetailModel:VideoPlayerViewModel = getScreenModel()
-        val siteKey = currentVideo.siteKey
-        val vodId = currentVideo.id
-        val vodName = currentVideo.title
         if(!siteKey.isNullOrEmpty()){
-            val site =VodConfig.get().getSite(siteKey )
+            val site =VodConfig.get().getSite(siteKey)
             vodDetailModel.getVodDetail(site, vodId, vodName)
             BottomSheetNavigator {
                 VideoPlayerContentView(currentVideo, vodDetailModel)

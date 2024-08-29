@@ -1,12 +1,30 @@
 package com.calvin.box.movie.bean
 
 import io.github.aakira.napier.Napier
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
 import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.serializer
 
 @Serializable
 data class Result(
@@ -17,11 +35,14 @@ data class Result(
     @SerialName("filters")
     val filters: LinkedHashMap<String, List<Filter>> = LinkedHashMap(),
     @SerialName("url")
+    @Serializable(with = UrlSerializer::class)
     var url: Url = Url(),
     @SerialName("msg")
     var msg: String = "",
     val subs: List<Sub> = mutableListOf(),
-    var header: JsonElement? = null,
+
+    //@Serializable(with = HeaderAdapter::class)
+    var header: String? = null,
     var playUrl: String = "",
     val jxFrom: String = "",
     var flag: String = "",
@@ -102,7 +123,7 @@ data class Result(
         fun folder(item: Vod): Result {
             val type = Class().apply {
                 typeFlag = "1"
-                typeId = item.vodId
+                typeId = item.vodId.toString()
                 typeName = item.vodName
             }
             return Result(
@@ -213,9 +234,9 @@ data class Result(
         return playUrl + url.v()
     }
 
-    fun getHeaders(): Map<String, String> {
+    fun getHeaders(): Map<String, String>? {
         if(header == null) return mutableMapOf()
-        return com.calvin.box.movie.utils.Json.toMap(header!!)
+        return com.calvin.box.movie.utils.Json.toMap(header)
     }
 
     fun getStyle(style: Style): Style {
@@ -237,5 +258,50 @@ data class Result(
 
     override fun toString(): String {
         return json.encodeToString(serializer(), this)
+    }
+
+    object UrlSerializer : KSerializer<Url> {
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Url") {
+            element<Int>("position")
+            element<List<Value>>("values")
+        }
+
+        override fun serialize(encoder: Encoder, value: Url)  = encoder.encodeStructure(descriptor) {
+            encodeIntElement(descriptor, 0, value.getPosition())
+            encodeSerializableElement(descriptor, 1, ListSerializer(Value.serializer()), value.getValues())
+        }
+
+        override fun deserialize(decoder: Decoder): Url {
+            val jsonDecoder = decoder as? JsonDecoder
+                ?: throw SerializationException("Expected JsonDecoder")
+            return when (val jsonElement = jsonDecoder.decodeJsonElement()) {
+                is JsonArray -> convert(jsonElement)
+                is JsonObject -> Url.objectFrom(jsonElement.toString())
+                is JsonPrimitive -> Url.create().add(jsonElement.content)
+                else -> throw SerializationException("Unknown type for Url")
+            }
+        }
+
+        private fun convert(array: JsonArray): Url {
+            val url = Url.create()
+            for (i in array.indices step 2) {
+                array.getOrNull(i + 1)?.jsonPrimitive?.content?.let {
+                    url.add(array[i].jsonPrimitive.content,
+                        it
+                    )
+                }
+            }
+            return url
+        }
+    }
+
+    object HeaderAdapter : JsonTransformingSerializer<String>(String.serializer()) {
+        override fun transformDeserialize(element: JsonElement): JsonElement {
+            return when (element) {
+                is JsonPrimitive -> element  // 直接返回字符串
+                is JsonObject -> JsonPrimitive(element.toString())  // 将JsonObject转换为字符串
+                else -> throw SerializationException("Unknown type for ext")
+            }
+        }
     }
 }

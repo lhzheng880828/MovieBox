@@ -1,4 +1,4 @@
-package chaintech.videoplayer.util
+package com.calvin.box.movie.media.util
 
 import android.content.Context
 import android.net.Uri
@@ -17,11 +17,14 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.dash.DashMediaSource
+import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.calvin.box.movie.media.util.getExoPlayerLifecycleObserver
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -56,7 +59,9 @@ fun rememberExoPlayerWithLifecycle(
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
 
     val exoPlayer = remember(context) {
-        ExoPlayer.Builder(context).build()
+        ExoPlayer.Builder(context)
+            .setTrackSelector(DefaultTrackSelector(context))
+            .build()
             .apply {
                 videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
                 repeatMode = Player.REPEAT_MODE_ONE
@@ -68,8 +73,23 @@ fun rememberExoPlayerWithLifecycle(
         val videoUri = Uri.parse(reelUrl)
         val mediaItem = MediaItem.fromUri(videoUri)
         val dataSourceFactory = DefaultDataSource.Factory(context)
-        val mediaSource =
-            ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+        val mediaSource = when {
+            reelUrl.endsWith(".m3u8", ignoreCase = true) -> {
+                // HLS media source
+                HlsMediaSource.Factory(DefaultHttpDataSource.Factory())
+                    .createMediaSource(mediaItem)
+            }
+            reelUrl.endsWith(".mpd", ignoreCase = true) -> {
+                // DASH media source
+                DashMediaSource.Factory(DefaultHttpDataSource.Factory())
+                    .createMediaSource(mediaItem)
+            }
+            else -> {
+                // Progressive or other formats (mp4, mkv, etc.)
+                ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(mediaItem)
+            }
+        }
         exoPlayer.seekTo(0, 0)
         exoPlayer.setMediaSource(mediaSource)
         exoPlayer.prepare()

@@ -1,6 +1,6 @@
 package com.github.catvod;
 
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.HostUtil;
 
 public class Proxy {
 
@@ -15,6 +15,6 @@ public class Proxy {
     }
 
     public static String getUrl(boolean local) {
-        return "http://" + (local ? "127.0.0.1" : Util.getIp()) + ":" + getPort() + "/proxy";
+        return "http://" + (local ? "127.0.0.1" : HostUtil.getIp()) + ":" + getPort() + "/proxy";
     }
 }

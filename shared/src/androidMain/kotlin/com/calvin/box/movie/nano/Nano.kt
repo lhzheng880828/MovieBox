@@ -11,7 +11,7 @@ import com.calvin.box.movie.nano.process.Process
 import com.calvin.box.movie.utils.getAndroidId
 import com.calvin.box.movie.utils.getDeviceName
 import com.github.catvod.utils.Asset
-import com.github.catvod.utils.Util
+import com.github.catvod.utils.HostUtil
 import com.google.common.net.HttpHeaders
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.Response.IStatus
@@ -54,9 +54,9 @@ class Nano(port: Int) : NanoHTTPD(port) {
         if (url.startsWith("/device")) return success(json.encodeToString(device))
         if (url.startsWith("/license")) return success(
             String(
-                Util.decode(
+                HostUtil.decode(
                     url.substring(9),
-                    Util.URL_SAFE
+                    HostUtil.URL_SAFE
                 )
             )
         )

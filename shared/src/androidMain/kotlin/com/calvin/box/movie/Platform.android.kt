@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.text.TextUtils
+import androidx.annotation.RequiresApi
 import androidx.collection.ArrayMap
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -12,6 +13,7 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.calvin.box.movie.api.config.VodConfig
 import com.calvin.box.movie.api.loader.JsLoader
 import com.calvin.box.movie.api.loader.PyLoader
+import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
@@ -20,17 +22,21 @@ import com.calvin.box.movie.bean.Vod
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.nano.Server
+import com.calvin.box.movie.player.AndroidSource
+import com.calvin.box.movie.player.Extractor
 import com.calvin.box.movie.player.Source
+import com.calvin.box.movie.pref.AndroidPref
+import com.calvin.box.movie.pref.BasePreference
 import com.calvin.box.movie.utils.Sniffer
 import com.github.catvod.Init
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderDebug
 import com.github.catvod.crawler.SpiderNull
-import com.github.catvod.net.OkHttp
+import com.github.catvod.net.HostOkHttp
 import com.github.catvod.utils.Asset
 import com.github.catvod.utils.Path
 import com.github.catvod.utils.Trans
-import com.github.catvod.utils.Util
+import com.github.catvod.utils.HostUtil
 import dalvik.system.DexClassLoader
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +48,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Headers
 import okhttp3.Response
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStreamWriter
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -70,6 +78,24 @@ class AndroidPlatform : Platform {
         }
     }
 
+    override fun writeStringToFile(fileName: String, content: String) {
+            try {
+                // 获取文件目录
+                val fileDir = appContext.filesDir
+                // 创建文件对象
+                val file = File(fileDir, fileName)
+
+                // 使用 FileOutputStream 写入数据
+                FileOutputStream(file).use { fos ->
+                    OutputStreamWriter(fos).use { writer ->
+                        writer.write(content)
+                        writer.flush()  // 确保所有数据都被写入文件
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+    }
 
 }
 
@@ -77,8 +103,32 @@ actual fun getPlatform(): Platform = AndroidPlatform()
 
 actual class PlatformDecoder : AesDecoder by AndroidDecoder()
 
-// androidMain
+class AndroidUrlExtractor:UrlExtractor{
+    override fun parse(flags: List<Flag>) {
+        AndroidSource.get().parse(flags)
+    }
 
+    override fun fetch(result: Result): String {
+        return AndroidSource.get().fetch(result)
+    }
+
+    override fun fetch(result: Channel): String {
+        return AndroidSource.get().fetch(result)
+    }
+
+    override fun stop() {
+        AndroidSource.get().stop()
+    }
+
+    override fun exit() {
+        AndroidSource.get().exit()
+    }
+
+}
+
+actual fun getUrlExtractor():UrlExtractor = AndroidUrlExtractor()
+
+// androidMain
 class AndroidDynamicLoader(private val dexClassLoader: DexClassLoader) : DynamicLoader {
     override fun loadClass(name: String): Any? =
         dexClassLoader.loadClass(name)
@@ -207,7 +257,7 @@ class AndroidSpiderLoader: SpiderLoader {
             when {
                 url.startsWith("file") -> Path.copy(Path.local(url), file)
                 url.startsWith("assets") -> Path.copy(Asset.open(url), file)
-                url.startsWith("http") -> Path.write(file, OkHttp.newCall(url).execute().body!!.bytes())
+                url.startsWith("http") -> Path.write(file, HostOkHttp.newCall(url).execute().body!!.bytes())
                 else -> {Napier.d(tag = "wallPager"){"error wallPaper url"}}
             }
            // resize(file)
@@ -223,13 +273,13 @@ class AndroidSpiderLoader: SpiderLoader {
                 Napier.d { "#loadHomeContent, spider: $spider" }
                 val homeContent: String = spider.homeContent(true)
                 //SpiderDebug.log(homeContent)
-                Napier.d { "#loadHomeContent, homeContent: $homeContent" }
+                Napier.d { "#loadHomeContent, homeContent:type3 $homeContent" }
                 setRecent(site)
                 val result: Result = Result.fromJson(homeContent)
                 if (result.list.isNotEmpty()) return result
                 val homeVideoContent: String = spider.homeVideoContent()
                 //SpiderDebug.log(homeVideoContent)
-                Napier.d { "#loadHomeContent, homeVideoContent: $homeVideoContent" }
+                Napier.d { "#loadHomeContent, homeVideoContent:type3 $homeVideoContent" }
                 result.list = (Result.fromJson(homeVideoContent).list)
                 return result
             } else if (site.type== 4) {
@@ -241,7 +291,7 @@ class AndroidSpiderLoader: SpiderLoader {
                 return Result.fromJson(homeContent)
             } else {
                 val homeContent: String =
-                    OkHttp.newCall(site.api, getOKhttpHeaders(site.header)).execute()
+                    HostOkHttp.newCall(site.api, getOKhttpHeaders(site.header)).execute()
                         .body?.string() ?:""
                 SpiderDebug.log(homeContent )
                 return fetchPic(site, Result.fromType(site.type, homeContent))
@@ -262,29 +312,38 @@ class AndroidSpiderLoader: SpiderLoader {
            // Napier.d { "#loadCategory, spider: $spider" }
             val categoryContent = spider.categoryContent(category.typeId, page, filter, extend)
             //SpiderDebug.log(categoryContent)
-            Napier.d { "#loadcategoryContent, categoryContent: $categoryContent" }
+            Napier.d { "#loadcategoryContent, categoryContent:type3, classType: ${category.typeId},json:  $categoryContent" }
             setRecent(site)
             return Result.fromJson(categoryContent)
         } else {
             val params = ArrayMap<String, String>()
             if (site.type == 1 && extend.isNotEmpty()) params["f"] = Json.encodeToString(extend)
             if (site.type == 4) params["ext"] =
-                Util.base64(Json.encodeToString(extend), Util.URL_SAFE)
+                HostUtil.base64(Json.encodeToString(extend), HostUtil.URL_SAFE)
             params["ac"] = if (site.type == 0) "videolist" else "detail"
             params["t"] = category.typeId
             params["pg"] = page
             val categoryContent = call(site, params, true)
-            Napier.d { "#loadcategoryContent, categoryContent: $categoryContent" }
+            Napier.d { "#loadcategoryContent, categoryContent:type_99 $categoryContent" }
            // SpiderDebug.log(categoryContent)
             return Result.fromType(site.type, categoryContent)
         }
     }
 
+    var lastCallTime:Long = 0
 
     override suspend fun loadDetailContent(site: Site, vodId: String): Result {
+        lastCallTime = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
         if (site.type == 3) {
             val spider: Spider = getSpider(site) as Spider
-            val detailContent = spider.detailContent(listOf(vodId))
+            val detailContent =
+                try {
+                    spider.detailContent(listOf(vodId))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    "{}"
+                }
+
             SpiderDebug.log("#loadDetailContent: type3 $detailContent")
              setRecent(site)
             val result = Result.fromJson(detailContent)
@@ -324,14 +383,23 @@ class AndroidSpiderLoader: SpiderLoader {
         Source.stop()
         if (site.type == 3) {
             val spider: Spider =  getSpider(site) as Spider
-            val playerContent = spider.playerContent(flag, id, VodConfig.get().getFlags())
+            val playerContent =
+                try {
+                    spider.playerContent(flag, id, VodConfig.get().getFlags())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    "{}"
+                }
+
             SpiderDebug.log("#loadPlayerContent: type3 $playerContent")
              setRecent(site)
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = vodFlag
-            result.setUrl((Source.fetch(result)))
-            result.header = (site.header)
-            result.key = (key)
+            val fetchedUrl = Source.fetch(result)
+            SpiderDebug.log("#loadPlayerContent: fetchedUrl: $fetchedUrl")
+            result.setUrl(fetchedUrl)
+            if(result.header.isNullOrEmpty()) result.header = site.header.toString()
+            result.key = key
             return result
         } else if (site.type == 4) {
             val params = ArrayMap<String, String>()
@@ -342,7 +410,7 @@ class AndroidSpiderLoader: SpiderLoader {
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = (flag)
             result.setUrl(Source.fetch(result))
-            result.header = (site.header)
+            result.header = (site.header).toString()
             return result
         } else if (site.isEmpty() && "push_agent" == key) {
             val result = Result()
@@ -355,7 +423,7 @@ class AndroidSpiderLoader: SpiderLoader {
             var url: Url? = Url.create().add(id)
             val type = Uri.parse(id).getQueryParameter("type")
             if ("json" == type) {
-                val result = OkHttp.newCall(id, getOKhttpHeaders(site.header)).execute().body?.let {
+                val result = HostOkHttp.newCall(id, getOKhttpHeaders(site.header)).execute().body?.let {
                     Result.fromJson(
                         it.string())
                 }
@@ -365,7 +433,7 @@ class AndroidSpiderLoader: SpiderLoader {
             val result = Result()
             result.url = url?:Url()
             result.flag = flag
-            result.header = (site.header)
+            result.header = (site.header).toString()
             result.playUrl = site.playUrl
             result.setUrl(Source.fetch(result))
             result.parse = (
@@ -387,7 +455,14 @@ class AndroidSpiderLoader: SpiderLoader {
             val spider: Spider = getSpider(site) as Spider
             val transKey = Trans.t2s(keyword)
             //Napier.d { "#loadSearchContent, type3 spider: $spider, trans keyword: $transKey" }
-            val searchContent = spider.searchContent(transKey, quick, page)
+            val searchContent =
+                try {
+                    spider.searchContent(transKey, quick, page)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    ""
+                }
+
             SpiderDebug.log("#loadSearchContent，response type3 spider: $spider, trans keyword: $transKey，site: ${site.name}, json: $searchContent ")
             val result = Result.fromJson(searchContent)
             for (vod in result.list) vod.site = site
@@ -415,32 +490,42 @@ class AndroidSpiderLoader: SpiderLoader {
 
     @Throws(IOException::class)
     private fun call(site: Site, params: ArrayMap<String, String>, limit: Boolean): String {
-        val call = if (fetchExt(site, params, limit).length <= 1000) OkHttp.newCall(
-            site.api,
-            getOKhttpHeaders(site.header),
-            params
-        ) else OkHttp.newCall(site.api, getOKhttpHeaders(site.header), OkHttp.toBody(params))
-        return call.execute().body!!.string()
+        try {
+            val call = if (fetchExt(site, params, limit).length <= 1000) HostOkHttp.newCall(
+                site.api,
+                getOKhttpHeaders(site.header),
+                params
+            ) else HostOkHttp.newCall(site.api, getOKhttpHeaders(site.header), HostOkHttp.toBody(params))
+            return call.execute().body!!.string()
+        } catch (e: Exception) {
+           e.printStackTrace()
+            return "{}"
+        }
     }
 
     @Throws(java.lang.Exception::class)
     private fun fetchPic(site: Site, result: Result): Result {
-        if (site.type > 2 || result.list.isEmpty() || result.list[0].vodPic.isNotEmpty()
-        ) return result
-        val ids = ArrayList<String?>()
-        if (site.categories.isEmpty()) for (item in result.list) ids.add(item.vodId)
-        else for (item in result.list) if (site.categories
-                .contains(item.typeName)
-        ) ids.add(item.vodId)
-        if (ids.isEmpty()) return result.clear()
-        val params = ArrayMap<String, String>()
-        params["ac"] = if (site.type == 0) "videolist" else "detail"
-        params["ids"] = TextUtils.join(",", ids)
-        val response: String =
-            OkHttp.newCall(site.api, getOKhttpHeaders(site.header), params).execute().body?.string()
-                ?:"";
-        result.list = (Result.fromType(site.type, response).list )
-        return result
+        try {
+            if (site.type > 2 || result.list.isEmpty() || result.list[0].vodPic.isNotEmpty()
+            ) return result
+            val ids = ArrayList<String?>()
+            if (site.categories.isEmpty()) for (item in result.list) ids.add(item.vodId.toString())
+            else for (item in result.list) if (site.categories
+                    .contains(item.typeName)
+            ) ids.add(item.vodId.toString())
+            if (ids.isEmpty()) return result.clear()
+            val params = ArrayMap<String, String>()
+            params["ac"] = if (site.type == 0) "videolist" else "detail"
+            params["ids"] = TextUtils.join(",", ids)
+            val body = HostOkHttp.newCall(site.api, getOKhttpHeaders(site.header), params).execute().body
+            val response: String = body?.string() ?:""
+            body?.close()
+            result.list = (Result.fromType(site.type, response).list )
+            return result
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return result
+        }
     }
 
     @Throws(IOException::class)
@@ -453,7 +538,7 @@ class AndroidSpiderLoader: SpiderLoader {
     }
     @Throws(IOException::class)
     private fun fetchExt(site: Site): String {
-        val res: Response = OkHttp.newCall(site.ext, getOKhttpHeaders(site.header)).execute()
+        val res: Response = HostOkHttp.newCall(site.ext, getOKhttpHeaders(site.header)).execute()
         if (res.code != 200) return ""
         site.ext = (res.body!!.string())
         return site.ext
@@ -522,3 +607,12 @@ class AndroidNanoServer: NanoServer{
 }
 
 actual fun getNanoServer():NanoServer  = AndroidNanoServer()
+
+actual fun okhttpSetup(pref:BasePreference){
+    val proxy = AndroidPref.getString("proxy")
+    Napier.d { "set okhttp proxy: $proxy" }
+    HostOkHttp.get().setProxy(proxy)
+
+    /*val doh =  runBlocking { pref.doh.get() }
+    OkHttp.get().setDoh( Doh.objectFrom(doh))*/
+}

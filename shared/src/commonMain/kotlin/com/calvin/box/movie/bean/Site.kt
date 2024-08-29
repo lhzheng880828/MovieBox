@@ -11,8 +11,10 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.Transient
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
@@ -20,6 +22,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -188,19 +191,12 @@ data class Site(
 
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = String::class)
-object ExtAdapter : KSerializer<String> {
-    override fun deserialize(decoder: Decoder): String {
-        val jsonElement = decoder as? JsonElement ?: return ""
-        return when {
-            jsonElement is JsonPrimitive -> jsonElement.contentOrNull ?: ""
-            jsonElement is JsonArray || jsonElement is JsonObject -> jsonElement.toString()
-            else -> ""
+object ExtAdapter : JsonTransformingSerializer<String>(String.serializer()) {
+    override fun transformDeserialize(element: JsonElement): JsonElement {
+        return when (element) {
+            is JsonPrimitive -> element  // 直接返回字符串
+            is JsonObject -> JsonPrimitive(element.toString())  // 将JsonObject转换为字符串
+            else -> throw SerializationException("Unknown type for ext")
         }
-    }
-
-    override fun serialize(encoder: Encoder, value: String) {
-        encoder.encodeString(value)
     }
 }

@@ -15,6 +15,8 @@ import com.calvin.box.movie.screens.fruitties.FruitViewModel
 import com.calvin.box.movie.screens.dic.DiceViewModel
 import com.calvin.box.movie.feature.settings.SettingsViewModel
 import com.calvin.box.movie.ui.screens.tabsview.HomeTabViewModel
+import com.calvin.box.movie.feature.collection.SearchScreenModel
+import com.calvin.box.movie.HomeScreenModel
 
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
@@ -76,7 +78,9 @@ val screenModelsModule = module {
     factoryOf(::DiceViewModel)
     factoryOf(::SettingsViewModel)
     factoryOf(::HomeTabViewModel)
-    factoryOf ( ::VideoPlayerViewModel )
+    factoryOf( ::VideoPlayerViewModel)
+    factoryOf( ::SearchScreenModel )
+    factoryOf( ::HomeScreenModel )
 
 }
 

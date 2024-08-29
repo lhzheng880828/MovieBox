@@ -49,6 +49,11 @@ public class Path {
         return cache;
     }
 
+    public static File tv(String name) {
+        if (!name.startsWith(".")) name = "." + name;
+        return new File(tv(), name);
+    }
+
     public static File files() {
         return Init.context().getFilesDir();
     }
@@ -130,7 +135,7 @@ public class Path {
     }
 
     public static File jar(String name) {
-        return new File(jar(), Util.md5(name).concat(".jar"));
+        return new File(jar(), HostUtil.md5(name).concat(".jar"));
     }
 
     public static File thunder(String name) {
@@ -184,6 +189,10 @@ public class Path {
         }
     }
 
+    public static File write(File file, String data) {
+        return write(file, data.getBytes());
+    }
+
     public static File write(File file, byte[] data) {
         try {
             FileOutputStream fos = new FileOutputStream(create(file));
@@ -199,7 +208,7 @@ public class Path {
     }
 
     public static File utf8(File file) {
-        return write(cache(file.getName()), Util.utf8(readToByte(file)));
+        return write(cache(file.getName()), HostUtil.utf8(readToByte(file)));
     }
 
     public static void move(File in, File out) {

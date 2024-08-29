@@ -1,6 +1,6 @@
 package com.calvin.box.movie
 
-import com.github.catvod.net.OkHttp
+import com.github.catvod.net.HostOkHttp
 import com.github.catvod.utils.Asset
 import com.github.catvod.utils.Path
 import io.github.aakira.napier.Napier
@@ -48,7 +48,7 @@ class AndroidDecoder : AesDecoder {
         return when {
             url.startsWith("file") -> Path.read(url)
             url.startsWith("assets") -> Asset.read(url)
-            url.startsWith("http") -> OkHttp.string(url)
+            url.startsWith("http") -> HostOkHttp.string(url)
             else -> ""
         }
     }

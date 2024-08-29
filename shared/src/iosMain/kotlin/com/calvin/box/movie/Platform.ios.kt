@@ -5,12 +5,15 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Class
+import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.database.dbFileName
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
+import com.calvin.box.movie.pref.BasePreference
 import platform.UIKit.UIDevice
 import platform.Foundation.NSLocale
 import platform.Foundation.currentLocale
@@ -21,7 +24,6 @@ import platform.Foundation.NSURL
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import platform.Foundation.NSData
@@ -52,12 +54,39 @@ class IOSPlatform: Platform {
         TODO("Not yet implemented")
     }
 
+    override fun writeStringToFile(fileName: String, content: String) {
+        TODO("Not yet implemented")
+    }
 
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
 
 actual class PlatformDecoder : Decoder by IosDecoder()
+
+class IosUrlExtractor:UrlExtractor{
+
+    override fun parse(flags: List<Flag>) {
+    }
+    override fun fetch(result: Result): String {
+        return  ""
+    }
+
+    override fun fetch(result: Channel): String {
+        return ""
+    }
+
+    override fun stop() {
+
+    }
+
+    override fun exit() {
+
+    }
+
+}
+
+actual fun getUrlExtractor():UrlExtractor = IosUrlExtractor()
 
 // iosMain, macosMain, etc.
 class UnsupportedDynamicLoader : DynamicLoader {
@@ -222,3 +251,7 @@ class IosNanoServer:NanoServer{
 }
 
 actual fun getNanoServer():NanoServer  = IosNanoServer()
+
+actual fun okhttpSetup(pref: BasePreference){
+
+}

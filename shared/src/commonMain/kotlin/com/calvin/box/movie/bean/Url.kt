@@ -15,10 +15,12 @@ class Url {
     private var position: Int = 0
 
     companion object {
+        val json = Json { ignoreUnknownKeys=true }
         fun objectFrom(jsonString: String): Url {
             return try {
-                Json.decodeFromString(jsonString)
+                json.decodeFromString(jsonString)
             } catch (e: Exception) {
+                e.printStackTrace()
                 create()
             }
         }

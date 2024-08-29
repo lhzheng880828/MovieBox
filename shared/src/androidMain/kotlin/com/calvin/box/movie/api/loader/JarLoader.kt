@@ -7,9 +7,9 @@ import android.content.Context
 import com.calvin.box.movie.utils.UrlUtil
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderNull
-import com.github.catvod.net.OkHttp
+import com.github.catvod.net.HostOkHttp
 import com.github.catvod.utils.Path
-import com.github.catvod.utils.Util
+import com.github.catvod.utils.HostUtil
 import dalvik.system.DexClassLoader
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.sync.Mutex
@@ -37,7 +37,7 @@ class JarLoader {
     }
 
     fun setRecent(recent: String) {
-        Napier.d{"#setRecent, recent: $recent"}
+        //Napier.d{"#setRecent, recent: $recent"}
         this.recent = recent
     }
 
@@ -70,7 +70,7 @@ class JarLoader {
 
     private  fun download(url: String): File {
         return try {
-            Path.write(Path.jar(url), OkHttp.newCall(url).execute().body?.bytes() ?: byteArrayOf())
+            Path.write(Path.jar(url), HostOkHttp.newCall(url).execute().body?.bytes() ?: byteArrayOf())
         } catch (e: Exception) {
             Path.jar(url)
         }
@@ -84,9 +84,9 @@ class JarLoader {
         }
          Napier.d{"#parseJar, jarUrl: $jarUrl, md5: $md5"}
          var jarKey = key
-         if(key.isEmpty()) jarKey = Util.md5(spiderStr)
+         if(key.isEmpty()) jarKey = HostUtil.md5(spiderStr)
         when {
-            md5.isNotEmpty() && Util.equals(jarUrl, md5) -> load(jarKey, Path.jar(jarUrl))
+            md5.isNotEmpty() && HostUtil.equals(jarUrl, md5) -> load(jarKey, Path.jar(jarUrl))
             jarUrl.startsWith("img+") -> load(jarKey, (decoder.getSpider(jarUrl) as File))
             jarUrl.startsWith("http") -> load(jarKey, download(jarUrl))
             jarUrl.startsWith("file") -> load(jarKey, Path.local(jarUrl))
@@ -102,7 +102,7 @@ class JarLoader {
 
     suspend fun getSpider(key: String, api: String, ext: String, spiderStr: String): Spider = mutex.withLock {
         Napier.d { "#getSpider, key:$key, api:$api, ext:$ext, spiderStr:$spiderStr" }
-        val jaKey = Util.md5(spiderStr)
+        val jaKey = HostUtil.md5(spiderStr)
         val spKey = jaKey + key
         Napier.d { "#getSpider, jarKey:$jaKey, spKey:$spKey" }
         return spiders.getOrPut(spKey) {
@@ -113,8 +113,8 @@ class JarLoader {
                 spider?.init( ContextProvider.context as Context, ext)
                 spider ?: SpiderNull()
             } catch (e: Throwable) {
-                //e.printStackTrace
-                Napier.w { "getSpider error: ${e.message}" }
+                e.printStackTrace()
+                //Napier.w { "getSpider error: ${e.message}" }
                 SpiderNull()
             }
         }
@@ -134,7 +134,7 @@ class JarLoader {
 
     suspend fun proxyInvoke(params: Map<String, String>): Array<Any>? = mutex.withLock {
         try {
-            val spiderKey = Util.md5(recent)
+            val spiderKey = HostUtil.md5(recent)
             Napier.d { "#proxyInvoke, spiderKey: $spiderKey" }
             val method = methods[spiderKey]
             Napier.d { "#proxyInvoke, method: $method" }

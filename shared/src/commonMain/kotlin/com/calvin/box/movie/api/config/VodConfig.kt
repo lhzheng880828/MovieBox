@@ -8,6 +8,7 @@ import com.calvin.box.movie.utils.UrlUtil
 //import com.fongmi.android.tv.utils.Notify
 import com.calvin.box.movie.bean.Doh
 import com.calvin.box.movie.di.AppDataContainer
+import com.calvin.box.movie.getPlatform
 //import com.github.catvod.net.OkHttp
 import com.calvin.box.movie.utils.Json
 import com.calvin.box.movie.getSpiderLoader
@@ -96,7 +97,8 @@ class VodConfig {
         Napier.d { "#loadConfig invoke" }
         try {
             val orgJson = Decoder.getJson(config.url)
-            //Napier.d { "#loadConfig orgJson: $orgJson" }
+           // Napier.d { "#loadConfig orgJson: $orgJson" }
+            getPlatform().writeStringToFile("config.json", orgJson)
             checkJson(Json.parse(orgJson).jsonObject, callback)
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -104,6 +106,8 @@ class VodConfig {
             else loadCache(callback, e)
         }
     }
+
+
 
     private fun loadCache(callback: Callback?, e: Throwable) {
         Napier.d { "#loadCache invoke" }
@@ -171,13 +175,15 @@ class VodConfig {
         }
         for (element in Json.safeListElement(jsonObject, "sites")) {
             val site: Site = Site.objectFrom(element)
+            //Napier.d { "initSite: loop site: $site" }
             if (sites.contains(site)) continue
             site.api = (parseApi(site.api))
             site.ext = (parseExt(site.ext))
             sites.add(site.trans().sync())
         }
         for (site in sites) {
-            if (site.key == config.home) {
+            //if (site.key == config.home) {
+            if (site.key == "索尼") {
                 setHome(site)
             }
         }
@@ -200,7 +206,7 @@ class VodConfig {
 
     private fun initOther(`object`: JsonObject) {
         if (parses.size > 0) parses.add(0, Parse.god())
-        if (home == null) setHome(if (sites.isEmpty()) Site() else sites[0])
+        if (home == null) setHome(if (sites.isEmpty()) Site() else sites.find { it.key == "索尼"/*"csp_Wogg"*/ }!! )
         if (parse == null) setParse(if (parses.isEmpty()) Parse() else parses[0])
         setRules(Rule.arrayFrom(`object`["rules"]).toMutableList())
         setDoh(Doh.arrayFrom(`object`["doh"]).toMutableList())
@@ -333,7 +339,7 @@ class VodConfig {
 
     private fun setHome(home: Site) {
         this.home = home
-        this.home?.activated =true
+        this.home!!.activated =true
         runBlocking { config.home(home.key).save() }
         for (item in getSites()) item.setActivated(home)
     }

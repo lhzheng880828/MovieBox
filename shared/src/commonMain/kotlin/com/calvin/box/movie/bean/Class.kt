@@ -4,6 +4,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -11,7 +13,11 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
 
 /*
 import org.simpleframework.xml.Attribute
@@ -22,8 +28,7 @@ import org.simpleframework.xml.Text
 //@Root(strict = false)
 @Serializable
 data class Class @OptIn(ExperimentalSerializationApi::class) constructor(
-   // @Attribute(name = "id", required = false)
-   // @Serializable(with = TypeSerializer::class)
+   @Serializable(with = TypeSerializer::class)
     @JsonNames("type id", "type_id")
     var typeId: String = "",
 
@@ -116,28 +121,19 @@ data class Class @OptIn(ExperimentalSerializationApi::class) constructor(
 
 }
 
-object TypeSerializer : KSerializer<String> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("typeId") {
-        element<String>("type_id")
-        element<String>("type id")
-    }
-
-    override fun serialize(encoder: Encoder, value: String) {
-        encoder.encodeString(value)
-    }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    override fun deserialize(decoder: Decoder): String {
-        return decoder.decodeStructure(descriptor) {
-            var result: String? = null
-            for (i in 0 until descriptor.elementsCount) {
-                val name = descriptor.getElementName(i)
-                if (name == "type_id" || name == "type id") {
-                    result = decodeStringElement(descriptor, i)
-                    break
+object TypeSerializer : JsonTransformingSerializer<String>(String.serializer()) {
+    override fun transformDeserialize(element: JsonElement): JsonElement {
+        return when (element) {
+            is JsonPrimitive -> {
+                // 如果element不是字符串类型，则将其转换为字符串
+                if (!element.isString) {
+                    JsonPrimitive(element.content)
+                } else {
+                    element
                 }
             }
-            result ?: throw IllegalArgumentException("Missing type_id or alternative_type_id field")
+            is JsonObject -> JsonPrimitive(element.toString())  // 将JsonObject转换为字符串
+            else -> throw SerializationException("Unknown type for type id")
         }
     }
 }

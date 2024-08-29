@@ -53,13 +53,11 @@ data class VodListScreen(val category: Class, val viewModel: HomeTabViewModel) :
 
     private val objectsFlow =  viewModel.loadPagingDataFLow(category)
 
-
     @Composable
     override fun Content() {
         val navigator = LocalNavigation.current
         val objects = objectsFlow.collectAsLazyPagingItems()
         Napier.d { "invoke vodListScreen content" }
-
         AnimatedContent(objects.itemCount>0) { objectsAvailable ->
             if (objectsAvailable) {
                 ObjectGrid(

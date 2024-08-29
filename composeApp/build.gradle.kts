@@ -66,6 +66,8 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.media3.exoplayer)
             implementation(libs.media3.ui)
+            implementation(libs.media3.exoplayer.dash)
+            implementation(libs.media3.exoplayer.hls)
 
             //implementation(libs.compose.ui.unit.android)
             //implementation(libs.compose.runtime.android)

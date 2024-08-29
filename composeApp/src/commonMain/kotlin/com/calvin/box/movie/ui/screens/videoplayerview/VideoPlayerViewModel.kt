@@ -34,7 +34,9 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
 
+
     fun getVodDetail(site :Site, vodId:String, vodName:String){
+        Napier.d { "#getVodDetail, site: ${site.key}, vodId:$vodId ,vodName: $vodName" }
         val isFromCollection = false //TODO check the logic
         _uiState.value = UiState.Loading
         screenModelScope.launch(Dispatchers.IO) {
@@ -88,7 +90,7 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
 
                 if(vodList.isNotEmpty()){
                     val vodOne = vodList[0]
-                    val result =  movieRepo.loadVodDetailContent(vodOne.site!!, vodOne.vodId)
+                    val result =  movieRepo.loadVodDetailContent(vodOne.site!!, vodOne.vodId.toString())
                     val vodDetail = result.list.first()
                     vodDetail.site = vodOne.site
                     val flags = vodDetail.vodFlags
@@ -103,7 +105,7 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
 
                     Napier.d { "playerResult: $playerResult" }
                     val realUrl = playerResult.getRealUrl()
-
+                    Napier.d { "realUrl: $realUrl" }
                     vodDetail.vodPlayUrl = realUrl
 
 
@@ -114,8 +116,27 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
 
             } else {
                 val result =  movieRepo.loadVodDetailContent(site, vodId)
-                val vod = result.list.first()
-                _uiState.value = UiState.Success(DetailDataCombine(detail = vod))
+                if(result.list.isEmpty()){
+                    _uiState.value = UiState.Error("No vod list loaded")
+                } else {
+                    val vodDetail = result.list.first()
+
+                    vodDetail.site = site
+                    val flags = vodDetail.vodFlags
+
+                    val flag = flags[0].flag
+
+                    val episode = flags[0].episodes[0]
+
+                    Napier.d { "vodSite: ${vodDetail.site}, flag: $flag, episode: $episode" }
+                    val playerResult = movieRepo.loadPlayerContent(site, flag, episode.url)
+                    Napier.d { "playerResult: $playerResult" }
+                    val realUrl = playerResult.getRealUrl()
+                    Napier.d { "realUrl: $realUrl" }
+                    vodDetail.vodPlayUrl = realUrl
+                    _uiState.value = UiState.Success(DetailDataCombine(detail = vodDetail))
+                }
+
             }
 
         }

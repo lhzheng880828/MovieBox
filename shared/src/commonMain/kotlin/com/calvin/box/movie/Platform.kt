@@ -3,12 +3,15 @@ package com.calvin.box.movie
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Class
+import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.network.MoiveApi
 import com.calvin.box.movie.network.MoiveNetworkApi
+import com.calvin.box.movie.pref.BasePreference
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
@@ -28,6 +31,8 @@ interface Platform {
 
     fun url2FileName(url: String):String
 
+    fun writeStringToFile(fileName: String, content: String)
+
 }
 
 expect fun getPlatform(): Platform
@@ -40,6 +45,17 @@ interface AesDecoder {
 }
 
 expect class PlatformDecoder() : AesDecoder
+
+
+interface UrlExtractor {
+
+    fun parse(flags: List<Flag>)
+    fun fetch(result: Result):String
+    fun fetch(result: Channel):String
+    fun stop()
+    fun exit()
+}
+expect fun getUrlExtractor(): UrlExtractor
 
 // commonMain
 interface DynamicLoader {
@@ -59,6 +75,7 @@ class JarLoader(private val jarPath: String) {
         return loader.invoke(className, methodName, *args)
     }
 }
+
 
 // commonMain
 /*
@@ -110,6 +127,8 @@ interface NanoServer {
 }
 
 expect fun getNanoServer(): NanoServer
+
+expect fun okhttpSetup(pref:BasePreference)
 
 
  interface DataFactory {

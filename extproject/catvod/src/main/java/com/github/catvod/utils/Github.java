@@ -2,7 +2,7 @@ package com.github.catvod.utils;
 
 import android.net.Uri;
 
-import com.github.catvod.net.OkHttp;
+import com.github.catvod.net.HostOkHttp;
 
 import java.io.File;
 
@@ -25,7 +25,7 @@ public class Github {
     public static String getSo(String url) {
         try {
             File file = new File(Path.so(), Uri.parse(url).getLastPathSegment());
-            if (file.length() < 300) Path.write(file, OkHttp.newCall(url).execute().body().bytes());
+            if (file.length() < 300) Path.write(file, HostOkHttp.newCall(url).execute().body().bytes());
             return file.getAbsolutePath();
         } catch (Exception e) {
             e.printStackTrace();

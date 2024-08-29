@@ -71,6 +71,16 @@ public class Json {
         }
     }
 
+
+    public static JsonObject safeObject(String json) {
+        try {
+            JsonObject obj = parse(json).getAsJsonObject();
+            return obj == null ? new JsonObject() : obj;
+        } catch (Throwable e) {
+            return new JsonObject();
+        }
+    }
+
     public static Map<String, String> toMap(String json) {
         return TextUtils.isEmpty(json) ? null : toMap(parse(json));
     }

@@ -2,10 +2,13 @@ package com.calvin.box.movie.bean
 
 
 import com.calvin.box.movie.utils.Sniffer
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -16,12 +19,18 @@ import kotlinx.serialization.encoding.decodeStructure
 import com.fongmi.android.tv.App
 import com.fongmi.android.tv.utils.Sniffer*/
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNames
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
 
 @Serializable
 data class Vod @OptIn(ExperimentalSerializationApi::class) constructor(
     @SerialName("vod_id")
-    var vodId: String = "",
+    @Serializable(with = VodIdSerializer::class)
+    var vodId: String = "0",
 
     //@Serializable(with = VodNameSerializer::class)
     @JsonNames("vod name", "vod_name")
@@ -162,14 +171,26 @@ data class Vod @OptIn(ExperimentalSerializationApi::class) constructor(
         return "Vod(vodId='$vodId', vodName='$vodName', typeName='$typeName', vodPic='$vodPic', vodRemarks='$vodRemarks', vodYear='$vodYear', vodArea='$vodArea', vodDirector='$vodDirector', vodActor='$vodActor', vodContent='$vodContent', vodPlayFrom='$vodPlayFrom', vodPlayUrl='$vodPlayUrl', vodTag='$vodTag', cate=$cate, style=$style, land=$land, circle=$circle, ratio=$ratio, vodFlags=$vodFlags, site=$site)"
     }
 
-    /* override fun toString(): String {
-         return "Vod(vodName='$vodName', vodId='$vodId', typeName='$typeName')"
-     }*/
-
-
-
-
 }
+
+
+object VodIdSerializer : JsonTransformingSerializer<String>(String.serializer()) {
+    override fun transformDeserialize(element: JsonElement): JsonElement {
+        return when (element) {
+            is JsonPrimitive -> {
+                // 如果element不是字符串类型，则将其转换为字符串
+                if (!element.isString) {
+                    JsonPrimitive(element.content)
+                } else {
+                    element
+                }
+            }
+            is JsonObject -> JsonPrimitive(element.toString())  // 将JsonObject转换为字符串
+            else -> throw SerializationException("Unknown type for ext")
+        }
+    }
+}
+
 
 object VodNameSerializer : KSerializer<String> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("vodName") {

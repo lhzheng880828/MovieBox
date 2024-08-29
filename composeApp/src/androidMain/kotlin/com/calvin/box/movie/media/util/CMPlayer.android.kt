@@ -9,8 +9,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
 import com.calvin.box.movie.media.model.PlayerSpeed
-import chaintech.videoplayer.util.rememberExoPlayerWithLifecycle
-import chaintech.videoplayer.util.rememberPlayerView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 

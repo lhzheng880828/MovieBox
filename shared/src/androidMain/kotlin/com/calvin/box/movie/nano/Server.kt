@@ -1,10 +1,9 @@
 package com.calvin.box.movie.nano
 
 import com.calvin.box.movie.AndroidPlayers
-import com.calvin.box.movie.player.Players
 import com.calvin.box.movie.pref.AndroidPref
 import com.github.catvod.Proxy
-import com.github.catvod.utils.Util
+import com.github.catvod.utils.HostUtil
 import io.github.aakira.napier.Napier
 import kotlin.concurrent.Volatile
 
@@ -31,7 +30,7 @@ class Server {
     }
 
     fun getAddress(local: Boolean): String {
-        return "http://" + (if (local) "127.0.0.1" else Util.getIp()) + ":" + port
+        return "http://" + (if (local) "127.0.0.1" else HostUtil.getIp()) + ":" + port
     }
 
     fun start() {

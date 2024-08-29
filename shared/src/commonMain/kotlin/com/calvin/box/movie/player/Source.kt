@@ -1,10 +1,10 @@
 package com.calvin.box.movie.player
 
+import com.calvin.box.movie.UrlExtractor
 import com.calvin.box.movie.bean.Episode
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
-import com.calvin.box.movie.player.extractor.Thunder
-import com.calvin.box.movie.player.extractor.Youtube
+import com.calvin.box.movie.getUrlExtractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -16,30 +16,31 @@ import kotlinx.coroutines.awaitAll
  */
 object  Source {
 
-    fun stop(){
+    private var urlExtractor:UrlExtractor? =  null
 
+    private fun getPlatformUrlExtractor():UrlExtractor{
+        if(urlExtractor == null){
+            urlExtractor = getUrlExtractor()
+        }
+        return urlExtractor!!
+    }
+
+    fun stop(){
+        getPlatformUrlExtractor().stop()
+    }
+
+    fun exit(){
+        getPlatformUrlExtractor().exit()
     }
 
     fun fetch(result: Result):String{
-        return ""
+        return getPlatformUrlExtractor().fetch(result)
     }
 
-    private fun processEpisode(episode: Episode): List<Episode> {
-        return when {
-            Thunder.Parser.match(episode.url) ->  emptyList()//Thunder.Parser.get(episode.url)
-            Youtube.Parser.match(episode.url) -> emptyList() //Youtube.Parser.get(episode.url)
-            else -> listOf(episode)
-        }
-    }
 
-    suspend fun parse(flags: List<Flag>) {
-        flags.forEach { flag ->
-            val newEpisodes = flag.episodes.map { episode ->
-                processEpisode(episode)
-            }.flatten()
-            flag.episodes.clear()
-            flag.episodes.addAll(newEpisodes)
-        }
+
+    fun parse(flags: List<Flag>) {
+        getPlatformUrlExtractor().parse(flags)
     }
 }
 

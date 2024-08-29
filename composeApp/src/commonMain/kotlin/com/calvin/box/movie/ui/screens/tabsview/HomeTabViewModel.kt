@@ -19,30 +19,15 @@ import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
 import com.calvin.box.movie.di.AppDataContainer
 import com.calvin.box.movie.impl.Callback
-import com.calvin.box.movie.xlab.paging.Repositories
-import com.calvin.box.movie.xlab.paging.Repository
 import io.github.aakira.napier.Napier
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.headers
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMap
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -117,7 +102,7 @@ class HomeTabViewModel(appDataContainer: AppDataContainer) :ScreenModel{
 
     }
 
-    fun loadPagingDataFLow(category:Class):Flow<androidx.paging.PagingData<Vod>>{
+    fun loadPagingDataFLow(category: Class):Flow<androidx.paging.PagingData<Vod>>{
         if("Home"== category.typeId){
             return homePagingVodList
         } else {
@@ -252,8 +237,8 @@ private class RepositoryPagingSource(
             val result = withContext(Dispatchers.IO){
                 movieRepo.loadCategoryContent(homeSite = site, category = category, pageNum = page.toString())
             }
-            /* Napier.d{"vod category name: ${category.typeName}, id: ${category.typeId}, size: ${result.list.size}"}
-             for(vod in result.list ){
+             Napier.d{"vod category name: ${category.typeName}, id: ${category.typeId}, size: ${result.list.size}"}
+            /* for(vod in result.list ){
                  Napier.d{"vod item loop: $vod"}
              }*/
             //emit(result.list)

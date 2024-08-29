@@ -5,7 +5,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.HostUtil;
 import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class ResponseInterceptor implements Interceptor {
         try {
             Uri uri = Uri.parse(location);
             if (uri.getUserInfo() == null) return;
-            response.header(HttpHeaders.AUTHORIZATION, Util.basic(uri.getUserInfo()));
+            response.header(HttpHeaders.AUTHORIZATION, HostUtil.basic(uri.getUserInfo()));
         } catch (Exception e) {
             e.printStackTrace();
         }

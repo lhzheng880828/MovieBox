@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.calvin.box.movie.bean.Class
 import com.calvin.box.movie.bean.Config
+import com.calvin.box.movie.bean.Hot
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
@@ -46,8 +47,12 @@ class MovieDataRepository (
         return database.getConfigDao().findByTypeFlow(type.ordinal)
     }
 
-    suspend fun getJsonData(){
-        api.getData(0)
+    suspend fun getHotwords():Hot{
+       return api.getHotword()
+    }
+
+    suspend fun getSuggest(keyword: String):Flow<List<String>>{
+        return api.getSuggest(keyword)
     }
 
     suspend fun loadHomeContent(site: Site):Result{
@@ -66,10 +71,12 @@ class MovieDataRepository (
     }
 
     suspend fun loadSearchContent(site: Site, keyword:String, quick: Boolean,  page:String):Result{
+        Napier.d { "#loadSearchContent invoke, siteKey: ${site.key}, keyword: $keyword, quick: $quick, page: $page" }
         return spiderLoader.loadSearchContent(site, keyword, quick, page)
     }
 
     suspend fun loadPlayerContent(site: Site, flag:String, url: String):Result{
+        Napier.d { "#loadPlayerContent invoke, siteKey: ${site.key}, flag: $flag, url: $url" }
         return spiderLoader.loadPlayerContent(site, url, flag)
     }
 

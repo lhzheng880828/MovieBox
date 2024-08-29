@@ -5,8 +5,10 @@ package com.calvin.box.movie.feature.collection
  *Email:lhzheng@grandstream.cn
  *Date:2024/8/5
  */
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -25,10 +27,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.koin.getScreenModel
+import com.calvin.box.movie.theme.hideKeyboard
+import io.github.aakira.napier.Napier
 
 // 模拟数据
 data class SearchRecord(val id: Int, val text: String)
@@ -254,118 +261,117 @@ fun ResultContent() {
 }
 
 
-data class MovieData(val id: Int,   val title: String, val site: String, val episodes: String, val rating: String)
-data class SiteData(val id: Int, val site: String)
+data class MovieData(val id: String,   val title: String, val site: String, val episodes: String, val rating: String)
+data class SiteData(val id: String, val site: String)
 
-@Composable
-fun SearchScreen() {
-    var textState by remember { mutableStateOf("") }
+class SearchScreen(private val keyword: String = "异形：夺命舰"):Screen {
 
-    val searchHistory = listOf(
-        "异人之下", "战狼·战狼", "康斯坦丁2", "坚落的审判", "死侍与金刚狼", "我爱你", "康斯坦丁", "潜行"
-    )
-    val hotSearch = listOf(
-        "开心锣铛", "战狼2", "战狼·战狼", "哈小浪轻松一刻 第三季", "孤战迷城",
-        "你比星光美丽", "小猪佩奇全集", "新猫和老鼠 第四季", "汪汪队立大功全集",
-        "小马宝莉 第8季", "你好，星期六 2024", "唐朝诡事录之西行", "戴拿奥特曼",
-        "周处除三害", "熊出没全集", "错位", "熊出没之探险日记", "汪汪队立大功 第十季",
-        "奔跑吧第8季", "长相思 第二季"
-    )
+    @Composable
+    override fun Content() {
+        val viewModel:SearchScreenModel = getScreenModel()
+        val textState by  viewModel.searchQuery.collectAsState(initial = keyword)
+        val state by viewModel.state.collectAsState()
+        val focusManager = LocalFocusManager.current
 
-    val sites = listOf(
-        SiteData(0,"全部"),
-        SiteData(1,"睿片") ,
-        SiteData(2,"酷看"),
-        SiteData(3,"萌米"),
-        SiteData(4,"热播"),
-        SiteData(5,"南瓜")
-    )
+        //Napier.d { "SearchScreen state: $state" }
+        val hotSearch =  if(state is SearchState.HotWords){
+            (state as SearchState.HotWords).items
+        } else if(state is SearchState.Suggestions) {
+            (state as SearchState.Suggestions).items
+        }else emptyList()
 
-    val searchResults = listOf(
-        MovieData(0, "异人之下", "睿片", "第27集", "7.0"),
-        MovieData(1, "异人之下", "酷看", "共27集", "8.0"),
-        MovieData(2,"异人之下", "萌米", "全27集", "9.0"),
-        MovieData(3,"异人之下V1", "萌米", "全27集", "9.0"),
-        MovieData(4,"异人之下V2", "萌米", "全27集", "9.0"),
-        MovieData(5,"异人之下HD", "睿片", "全27集", "9.0"),
-        MovieData(6,"异人之下国语", "酷看", "全27集", "9.0")
+        val sites = if(state is SearchState.Site2VodCollection){
+           val siteDatas =
+               (state as SearchState.Site2VodCollection).sites.map { SiteData(it.key, it.name) }.toMutableList()
+            siteDatas.add(0, SiteData("all", "全部"))
+            siteDatas
+        }else mutableListOf(SiteData("all", "全部"))
 
-    )
+        val searchResults = if(state is SearchState.Site2VodCollection){
+            (state as SearchState.Site2VodCollection).collections.map { MovieData(it.vodId, it.vodName, it.getSiteKey(), it.vodRemarks,it.ratio.toString()) }
+        }else emptyList()
 
-    //var searchKey = ""
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-                .background(Color.Gray.copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            BasicTextField(
-                value = textState,
-                onValueChange = { textState = it },
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                maxLines = 1,
-                textStyle = TextStyle.Default.copy(fontSize = 16.sp),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        // 启动搜索逻辑
-                       // textState = searchKey
-                    }
-                )
-            )
-            if (textState.isNotEmpty()) {
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Clear text",
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .background(Color.Gray.copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BasicTextField(
+                    value = textState,
+                    onValueChange =viewModel::onSearchQueryChanged,
                     modifier = Modifier
-                        .clickable { textState = "" }
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    maxLines = 1,
+                    textStyle = TextStyle.Default.copy(fontSize = 16.sp),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            hideKeyboard(focusManager)
+                            viewModel.saveSearchKeyword(textState)
+                            viewModel.searchVodCollection(textState)
+                        }
+                    )
                 )
-            }
-        }
-
-
-        if (textState.isEmpty()) {
-            Text("历史", style = MaterialTheme.typography.h3)
-            FlowRow(data = searchHistory,onItemClick = { item ->
-                textState = item
-                // 启动搜索逻辑
-            })
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("热搜", style = MaterialTheme.typography.h3)
-            FlowRow(data = hotSearch,onItemClick = { item ->
-                textState = item
-                // 启动搜索逻辑
-            })
-        } else {
-
-            var selectedSite by remember { mutableStateOf(sites.first()) }
-            val filteredMovies = remember(selectedSite) {
-                if (selectedSite.id == 0) searchResults
-                else searchResults.filter { it.site == selectedSite.site }
-            }
-
-            Row(modifier = Modifier.fillMaxSize()) {
-                // 左侧类目列表
-                SiteList(
-                    sites = sites,
-                    selectedSite = selectedSite,
-                    onSiteSelected = { selectedSite = it }
-                )
-
-                // 右侧电影列表
-                MovieList(movies = filteredMovies)
+                if (textState.isNotEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Clear text",
+                        modifier = Modifier
+                            .clickable { viewModel.onSearchQueryChanged("") }
+                    )
+                }
             }
 
 
-          /*  LazyColumn {
+            if (state !is SearchState.Site2VodCollection) {
+                Text("历史", style = MaterialTheme.typography.h3)
+                FlowRow(data = viewModel.searchHistory,
+                    onItemClick = { item ->
+                        hideKeyboard(focusManager)
+                        viewModel.onSearchQueryChanged(item)
+                        viewModel.searchVodCollection(item)
+                    },
+                    onItemLongClick = { item ->
+                        viewModel.removeSearchKeyword(item)
+                    })
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("热搜", style = MaterialTheme.typography.h3)
+                FlowRow(data = hotSearch,
+                    onItemClick = { item ->
+                        hideKeyboard(focusManager)
+                        viewModel.onSearchQueryChanged(item)
+                        viewModel.searchVodCollection(item)
+                },
+                    onItemLongClick = {})
+            } else {
+
+                var selectedSite by remember { mutableStateOf(sites.first()) }
+                val filteredMovies = remember(selectedSite) {
+                    if (selectedSite.id == "all") searchResults
+                    else searchResults.filter { it.site == selectedSite.site }
+                }
+
+                Row(modifier = Modifier.fillMaxSize()) {
+                    // 左侧类目列表
+                    SiteList(
+                        sites = sites,
+                        selectedSite = selectedSite,
+                        onSiteSelected = { selectedSite = it }
+                    )
+
+                    // 右侧电影列表
+                    MovieList(movies = filteredMovies)
+                }
+
+
+                /*  LazyColumn {
                 item {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         sites.forEach { site ->
@@ -377,12 +383,16 @@ fun SearchScreen() {
                     MovieItem(movie)
                 }
             }*/
+            }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FlowRow(data: List<String>, onItemClick: (String) -> Unit) {
+fun FlowRow(data: List<String>,
+            onItemClick: (String) -> Unit,
+            onItemLongClick: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         var currentRowWidth = 0.dp
         var rowItems = mutableListOf<String>()
@@ -393,7 +403,14 @@ fun FlowRow(data: List<String>, onItemClick: (String) -> Unit) {
                 // Create a new row with current items
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     rowItems.forEach { rowItem ->
-                        Chip(text = rowItem, modifier = Modifier.padding(bottom = 8.dp), onClick = { onItemClick(rowItem) })
+                        Chip(text = rowItem,
+                            modifier = Modifier.padding(bottom = 8.dp).combinedClickable(
+                                onClick = { onItemClick(rowItem) },
+                                onLongClick = { onItemLongClick(rowItem) }
+                            ),
+                            onClick = { onItemClick(rowItem) },
+
+                        )
                     }
                 }
                 // Reset for the next row
@@ -409,7 +426,9 @@ fun FlowRow(data: List<String>, onItemClick: (String) -> Unit) {
         if (rowItems.isNotEmpty()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 rowItems.forEach { rowItem ->
-                    Chip(text = rowItem, modifier = Modifier.padding(bottom = 8.dp),onClick = { onItemClick(rowItem) })
+                    Chip(text = rowItem,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        onClick = { onItemClick(rowItem) })
                 }
             }
         }
@@ -544,6 +563,7 @@ fun MovieItem(movie: MovieData) {
         }
     }
 }
+
 
 @Composable
 fun DefaultPreview() {

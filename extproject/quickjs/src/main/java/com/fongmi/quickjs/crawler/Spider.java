@@ -12,7 +12,7 @@ import com.fongmi.quickjs.utils.Module;
 import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.UriUtil;
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.HostUtil;
 import com.whl.quickjs.wrapper.JSArray;
 import com.whl.quickjs.wrapper.JSMethod;
 import com.whl.quickjs.wrapper.JSObject;
@@ -261,7 +261,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
         } else {
             String content = o.toString();
             if (base64 && content.contains("base64,")) content = content.split("base64,")[1];
-            return new ByteArrayInputStream(base64 ? Util.decode(content) : content.getBytes());
+            return new ByteArrayInputStream(base64 ? HostUtil.decode(content) : content.getBytes());
         }
     }
 }

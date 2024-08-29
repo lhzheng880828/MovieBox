@@ -4,11 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.calvin.box.movie.bean.Channel
+import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.di.getDataStore
+import com.calvin.box.movie.pref.BasePreference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.net.URLClassLoader
@@ -40,6 +43,9 @@ class JVMPlatform: Platform {
         }
     }
 
+    override fun writeStringToFile(fileName: String, content: String) {
+        TODO("Not yet implemented")
+    }
 
 }
 
@@ -47,6 +53,30 @@ actual fun getPlatform(): Platform = JVMPlatform()
 
 actual class PlatformDecoder : AesDecoder by JvmDecoder()
 // jvmMain
+
+class JvmUrlExtractor:UrlExtractor{
+    override fun parse(flags: List<Flag>) {
+    }
+
+    override fun fetch(result: Result): String {
+        return  ""
+    }
+
+    override fun fetch(result: Channel): String {
+        return ""
+    }
+
+    override fun stop() {
+
+    }
+
+    override fun exit() {
+
+    }
+
+}
+
+actual fun getUrlExtractor():UrlExtractor = JvmUrlExtractor()
 
 class JvmDynamicLoader(private val urlClassLoader: URLClassLoader) : DynamicLoader {
     override fun loadClass(name: String): Any? =
@@ -188,3 +218,7 @@ class JvmNanoServer:NanoServer{
 }
 
 actual fun getNanoServer():NanoServer  = JvmNanoServer()
+
+actual fun okhttpSetup(pref: BasePreference){
+
+}

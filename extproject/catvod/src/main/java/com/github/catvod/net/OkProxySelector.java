@@ -2,7 +2,7 @@ package com.github.catvod.net;
 
 import android.net.Uri;
 
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.HostUtil;
 
 import java.io.IOException;
 import java.net.Authenticator;
@@ -31,7 +31,7 @@ public class OkProxySelector extends ProxySelector {
     @Override
     public List<Proxy> select(URI uri) {
         if (proxy == null || hosts == null || hosts.isEmpty() || uri.getHost() == null || "127.0.0.1".equals(uri.getHost())) return Collections.singletonList(Proxy.NO_PROXY);
-        for (String host : hosts) if (Util.containOrMatch(uri.getHost(), host)) return Collections.singletonList(proxy);
+        for (String host : hosts) if (HostUtil.containOrMatch(uri.getHost(), host)) return Collections.singletonList(proxy);
         return Collections.singletonList(Proxy.NO_PROXY);
     }
 

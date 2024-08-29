@@ -1,9 +1,9 @@
 package com.fongmi.quickjs.utils;
 
 import com.fongmi.quickjs.bean.Req;
-import com.github.catvod.net.OkHttp;
+import com.github.catvod.net.HostOkHttp;
 import com.github.catvod.utils.Json;
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.HostUtil;
 import com.google.common.net.HttpHeaders;
 import com.whl.quickjs.wrapper.JSObject;
 import com.whl.quickjs.wrapper.QuickJSContext;
@@ -25,7 +25,7 @@ import okhttp3.Response;
 public class Connect {
 
     public static Call to(String url, Req req) {
-        OkHttpClient client = OkHttp.client(req.isRedirect(), req.getTimeout());
+        OkHttpClient client = HostOkHttp.client(req.isRedirect(), req.getTimeout());
         return client.newCall(getRequest(url, req, Headers.of(req.getHeader())));
     }
 
@@ -38,7 +38,7 @@ public class Connect {
             jsObject.setProperty("headers", jsHeader);
             if (req.getBuffer() == 0) jsObject.setProperty("content", new String(res.body().bytes(), req.getCharset()));
             if (req.getBuffer() == 1) jsObject.setProperty("content", JSUtil.toArray(ctx, res.body().bytes()));
-            if (req.getBuffer() == 2) jsObject.setProperty("content", Util.base64(res.body().bytes()));
+            if (req.getBuffer() == 2) jsObject.setProperty("content", HostUtil.base64(res.body().bytes()));
             return jsObject;
         } catch (Exception e) {
             return error(ctx);
