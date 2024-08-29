@@ -9,6 +9,7 @@ import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.network.MoiveApi
 import com.calvin.box.movie.network.MoiveNetworkApi
+import com.calvin.box.movie.pref.BasePreference
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
@@ -27,6 +28,8 @@ interface Platform {
     fun getUriQuery(url:String):String?
 
     fun url2FileName(url: String):String
+
+    fun writeStringToFile(fileName: String, content: String)
 
 }
 
@@ -110,6 +113,8 @@ interface NanoServer {
 }
 
 expect fun getNanoServer(): NanoServer
+
+expect fun okhttpSetup(pref:BasePreference)
 
 
  interface DataFactory {

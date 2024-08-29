@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
 class MoivePreferenceImpl(
-    private val moiveSettings: MoiveSettings,
+    private val movieSettings: MoiveSettings,
     override val scope: CoroutineScope,
 ) : BasePreference {
 
@@ -49,10 +49,10 @@ class MoivePreferenceImpl(
         StringPreference(KEY_KEEP, "")
     }
     override val keyword: Preference<String> by lazy {
-        StringPreference(KEY_KEYWORD, "")
+        StringPreference(KEY_KEYWORD, "[]")
     }
     override val hot: Preference<String> by lazy {
-        StringPreference(KEY_HOT, "")
+        StringPreference(KEY_HOT, "[]")
     }
     override val ua: Preference<String> by lazy {
         StringPreference(KEY_UA, "")
@@ -230,14 +230,14 @@ class MoivePreferenceImpl(
         override val defaultValue: Boolean = false,
     ) : Preference<Boolean> {
         override suspend fun set(value: Boolean) = withContext(scope.coroutineContext) {
-            moiveSettings.putBoolean(key, value)
+            movieSettings.putBoolean(key, value)
         }
 
         override suspend fun get(): Boolean = withContext(scope.coroutineContext/*dispatchers.io*/) {
-            moiveSettings.getBoolean(key, defaultValue)
+            movieSettings.getBoolean(key, defaultValue)
         }
 
-        override val flow: Flow<Boolean> by lazy { moiveSettings.getBooleanFlow(key, defaultValue) }
+        override val flow: Flow<Boolean> by lazy { movieSettings.getBooleanFlow(key, defaultValue) }
     }
 
     private inner class IntPreference(
@@ -245,14 +245,14 @@ class MoivePreferenceImpl(
         override val defaultValue: Int ,
     ) : Preference<Int> {
         override suspend fun set(value: Int) = withContext(scope.coroutineContext) {
-            moiveSettings.putInt(key, value)
+            movieSettings.putInt(key, value)
         }
 
         override suspend fun get(): Int = withContext(scope.coroutineContext/*dispatchers.io*/) {
-            moiveSettings.getInt(key, defaultValue)
+            movieSettings.getInt(key, defaultValue)
         }
 
-        override val flow: Flow<Int> by lazy { moiveSettings.getIntFlow(key, defaultValue) }
+        override val flow: Flow<Int> by lazy { movieSettings.getIntFlow(key, defaultValue) }
     }
 
     private inner class FloatPreference(
@@ -260,14 +260,14 @@ class MoivePreferenceImpl(
         override val defaultValue: Float ,
     ) : Preference<Float> {
         override suspend fun set(value: Float) = withContext(scope.coroutineContext) {
-            moiveSettings.putFloat(key, value)
+            movieSettings.putFloat(key, value)
         }
 
         override suspend fun get(): Float = withContext(scope.coroutineContext/*dispatchers.io*/) {
-            moiveSettings.getFloat(key, defaultValue)
+            movieSettings.getFloat(key, defaultValue)
         }
 
-        override val flow: Flow<Float> by lazy { moiveSettings.getFloatFlow(key, defaultValue) }
+        override val flow: Flow<Float> by lazy { movieSettings.getFloatFlow(key, defaultValue) }
     }
 
 
@@ -277,14 +277,14 @@ class MoivePreferenceImpl(
     ) : Preference<String> {
 
         override suspend fun set(value: String) = withContext(scope.coroutineContext) {
-            moiveSettings.putString(key, value)
+            movieSettings.putString(key, value)
         }
 
         override suspend fun get(): String = withContext(scope.coroutineContext) {
-            moiveSettings.getStringOrNull(key) ?: defaultValue
+            movieSettings.getStringOrNull(key) ?: defaultValue
         }
 
-        override val flow: Flow<String> by lazy { moiveSettings.getStringOrNullFlow(key).mapNotNull { it?:"" } }
+        override val flow: Flow<String> by lazy { movieSettings.getStringOrNullFlow(key).mapNotNull { it?:"" } }
     }
 
 
@@ -297,17 +297,17 @@ class MoivePreferenceImpl(
         override suspend fun set(value: V) = withContext(scope.coroutineContext/*dispatchers.io*/) {
             Napier.d { "set(), strValue: $value" }
 
-            moiveSettings.putString(key,  fromValue(value))
+            movieSettings.putString(key,  fromValue(value))
         }
 
         override suspend fun get(): V = withContext(scope.coroutineContext/*dispatchers.io*/) {
-           val strValue = moiveSettings.getStringOrNull(key)
+           val strValue = movieSettings.getStringOrNull(key)
             Napier.d { "get(), strValue: $strValue" }
             strValue?.let(toValue) ?: defaultValue
         }
 
         override val flow: Flow<V> by lazy {
-            moiveSettings.getStringOrNullFlow(key).map { string ->
+            movieSettings.getStringOrNullFlow(key).map { string ->
                 if (string != null) {
                     toValue(string)
                 } else {

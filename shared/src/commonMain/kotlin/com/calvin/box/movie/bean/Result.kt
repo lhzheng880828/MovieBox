@@ -21,7 +21,7 @@ data class Result(
     @SerialName("msg")
     var msg: String = "",
     val subs: List<Sub> = mutableListOf(),
-    var header: JsonElement? = null,
+    var header: String? = null,
     var playUrl: String = "",
     val jxFrom: String = "",
     var flag: String = "",
@@ -102,7 +102,7 @@ data class Result(
         fun folder(item: Vod): Result {
             val type = Class().apply {
                 typeFlag = "1"
-                typeId = item.vodId
+                typeId = item.vodId.toString()
                 typeName = item.vodName
             }
             return Result(
@@ -213,9 +213,9 @@ data class Result(
         return playUrl + url.v()
     }
 
-    fun getHeaders(): Map<String, String> {
+    fun getHeaders(): Map<String, String>? {
         if(header == null) return mutableMapOf()
-        return com.calvin.box.movie.utils.Json.toMap(header!!)
+        return com.calvin.box.movie.utils.Json.toMap(header)
     }
 
     fun getStyle(style: Style): Style {

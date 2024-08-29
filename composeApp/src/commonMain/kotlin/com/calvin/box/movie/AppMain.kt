@@ -1,10 +1,16 @@
 package com.calvin.box.movie
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -15,15 +21,26 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -33,6 +50,7 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabDisposable
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import cafe.adriel.voyager.transitions.SlideTransition
+import com.calvin.box.movie.feature.collection.SearchScreen
 import com.calvin.box.movie.feature.followed.FollowedScreen
 import com.calvin.box.movie.feature.history.HistoryScreen
 import com.calvin.box.movie.feature.settings.SettingsScreen
@@ -50,6 +68,7 @@ import com.calvin.box.movie.utility.BottomNavigationBarHeight
 import com.calvin.box.movie.utility.getSafeAreaSize
 import io.github.aakira.napier.Napier
 import network.chaintech.sdpcomposemultiplatform.sdp
+import kotlin.random.Random
 
 @Composable
 fun MyMovieApp() {
@@ -86,6 +105,7 @@ class HomeScreen : Screen {
     override fun Content() {
         Napier.i { "enter homeScreen" }
         val nv = LocalNavigator.currentOrThrow
+        val viewModel:HomeScreenModel = getScreenModel()
         Scaffold(
             modifier = Modifier
                 ///.background(color = MyApplicationTheme.colors.bottomTabBarColor)
@@ -105,13 +125,14 @@ class HomeScreen : Screen {
                 }
             },
             topBar = {
-                RootScreenAppBar("Home", false,
+                RootScreenAppBar("Home",
+                    refreshing = false,
+                    viewModel = viewModel,
                     onRefreshActionClick = {},
+                    onSearchActionClick = { nv.push(SearchScreen()) },
                     onFavoriteActionClick = { nv.push(FollowedScreen()) },
                     onHistoryActionClick = { nv.push(HistoryScreen()) },
-                    onSettingsActionClick = {
-                        nv.push(SettingsScreen())
-                    }
+                    onSettingsActionClick = { nv.push(SettingsScreen()) }
                 )
             },
 
@@ -130,21 +151,41 @@ class HomeScreen : Screen {
 @Composable
 fun RootScreenAppBar(
     title: String,
+    viewModel:HomeScreenModel,
     // loggedIn: Boolean,
     //user: TraktUser?,
     refreshing: Boolean,
     onRefreshActionClick: () -> Unit,
+    onSearchActionClick: () -> Unit,
     onFavoriteActionClick: () -> Unit,
     onHistoryActionClick: () -> Unit,
     onSettingsActionClick: () -> Unit,
     modifier: Modifier = Modifier,
     //scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
+    Napier.d { "draw RootScreenAppBar" }
     TopAppBar(
         modifier = modifier,
         //colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
         //scrollBehavior = scrollBehavior,
-        title = { Text(text = title) },
+        title = {
+            Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            //horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text =title, // 这里是左边显示的标题
+                modifier = Modifier.padding(start = 8.dp)
+            )
+
+            SearchBar(
+                viewModel = viewModel,
+                modifier = Modifier
+                    .width(200.dp)
+                    .padding(horizontal = 2.dp)
+            )
+        } },
         actions = {
             // This button refresh allows screen-readers, etc to trigger a refresh.
             // We only show the button to trigger a refresh, not to indicate that
@@ -165,6 +206,14 @@ fun RootScreenAppBar(
                  onClick = onUserActionClick,
                  modifier = Modifier.align(Alignment.CenterVertically),
              )*/
+            IconButton(
+                onClick = onSearchActionClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search Button"
+                )
+            }
             IconButton(
                 onClick = onFavoriteActionClick
             ) {
@@ -191,6 +240,37 @@ fun RootScreenAppBar(
                 )
             }
         },
+    )
+}
+
+@Composable
+fun SearchBar( viewModel: HomeScreenModel, modifier: Modifier = Modifier) {
+    val hotState by viewModel.hotState.collectAsState()
+    val randomIndex by viewModel.randomIndex.collectAsState()
+    Napier.d { "draw SearchBar ${hotState.size}, randomIndex: $randomIndex" }
+    var textState by remember { mutableStateOf(TextFieldValue("")) }
+    var randomHotWord = ""
+    if(hotState.isNotEmpty()){
+        if(randomIndex<hotState.size){
+            randomHotWord = hotState[randomIndex]
+        } else{
+            randomHotWord = hotState[0]
+        }
+    }
+
+    TextField(
+        value = textState,
+        onValueChange = { textState = it },
+        placeholder = { Text(randomHotWord) },
+        modifier = modifier
+            //.background(Color.White, shape = RoundedCornerShape(16.dp))
+            .padding(vertical = 2.dp),
+        /*colors = TextFieldDefaults.textFieldColors(
+            backgroundColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),*/
+        shape = RoundedCornerShape(2.dp)
     )
 }
 

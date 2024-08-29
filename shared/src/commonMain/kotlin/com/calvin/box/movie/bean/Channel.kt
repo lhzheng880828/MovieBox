@@ -1,9 +1,10 @@
 package com.calvin.box.movie.bean
 
-import com.calvin.box.movie.utils.Json
 import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
@@ -124,7 +125,7 @@ data class Channel(
 
     fun getHeaders(): Map<String, String> {
         if(header == null) return mutableMapOf()
-        val headers = Json.toMap(header!!).toMutableMap()
+        val headers = com.calvin.box.movie.utils.Json.toMap(header!!).toMutableMap()
         if (ua.isNotEmpty()) headers[HttpHeaders.UserAgent] = ua
         if (origin.isNotEmpty()) headers[HttpHeaders.Origin] = origin
         if (referer.isNotEmpty()) headers[HttpHeaders.Referrer] = referer
@@ -156,7 +157,8 @@ data class Channel(
         val result = Result()
         result.click = click
         result.url = Url.create().add(url)
-        result.header = Json.toObject(getHeaders())
+        val json = Json { ignoreUnknownKeys=true }
+        result.header = json.encodeToString(getHeaders())
         return result
     }
 

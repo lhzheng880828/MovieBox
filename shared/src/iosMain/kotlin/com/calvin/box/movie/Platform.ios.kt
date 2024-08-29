@@ -11,6 +11,7 @@ import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.database.dbFileName
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
+import com.calvin.box.movie.pref.BasePreference
 import platform.UIKit.UIDevice
 import platform.Foundation.NSLocale
 import platform.Foundation.currentLocale
@@ -52,6 +53,9 @@ class IOSPlatform: Platform {
         TODO("Not yet implemented")
     }
 
+    override fun writeStringToFile(fileName: String, content: String) {
+        TODO("Not yet implemented")
+    }
 
 }
 
@@ -222,3 +226,7 @@ class IosNanoServer:NanoServer{
 }
 
 actual fun getNanoServer():NanoServer  = IosNanoServer()
+
+actual fun okhttpSetup(pref: BasePreference){
+
+}

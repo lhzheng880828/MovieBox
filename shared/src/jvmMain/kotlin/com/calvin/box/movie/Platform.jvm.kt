@@ -9,6 +9,7 @@ import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.di.getDataStore
+import com.calvin.box.movie.pref.BasePreference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.net.URLClassLoader
@@ -40,6 +41,9 @@ class JVMPlatform: Platform {
         }
     }
 
+    override fun writeStringToFile(fileName: String, content: String) {
+        TODO("Not yet implemented")
+    }
 
 }
 
@@ -188,3 +192,7 @@ class JvmNanoServer:NanoServer{
 }
 
 actual fun getNanoServer():NanoServer  = JvmNanoServer()
+
+actual fun okhttpSetup(pref: BasePreference){
+
+}

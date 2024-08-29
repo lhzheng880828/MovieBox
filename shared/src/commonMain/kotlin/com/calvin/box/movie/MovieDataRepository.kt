@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.calvin.box.movie.bean.Class
 import com.calvin.box.movie.bean.Config
+import com.calvin.box.movie.bean.Hot
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
@@ -46,8 +47,12 @@ class MovieDataRepository (
         return database.getConfigDao().findByTypeFlow(type.ordinal)
     }
 
-    suspend fun getJsonData(){
-        api.getData(0)
+    suspend fun getHotwords():Hot{
+       return api.getHotword()
+    }
+
+    suspend fun getSuggest(keyword: String):Flow<List<String>>{
+        return api.getSuggest(keyword)
     }
 
     suspend fun loadHomeContent(site: Site):Result{

@@ -4,6 +4,7 @@ import android.app.Application
 import com.calvin.box.movie.di.initKoin
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.runBlocking
 
 class MovieApplication : Application() {
 

@@ -67,7 +67,7 @@ data class VodListScreen(val category: Class, val viewModel: HomeTabViewModel) :
                     onObjectClick = { vodObj ->
                         Napier.d { "vod item clicked" }
                         val homeSiteKey = VodConfig.get().getHome()?.key
-                        val videoModel = VideoModel(id = vodObj.vodId, description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
+                        val videoModel = VideoModel(id = vodObj.vodId.toString(), description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
                             subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName, siteKey = homeSiteKey)
                         navigator.goToVideoPlayerScreen(videoModel)
                     }

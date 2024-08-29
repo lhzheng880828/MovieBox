@@ -88,7 +88,7 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
 
                 if(vodList.isNotEmpty()){
                     val vodOne = vodList[0]
-                    val result =  movieRepo.loadVodDetailContent(vodOne.site!!, vodOne.vodId)
+                    val result =  movieRepo.loadVodDetailContent(vodOne.site!!, vodOne.vodId.toString())
                     val vodDetail = result.list.first()
                     vodDetail.site = vodOne.site
                     val flags = vodDetail.vodFlags

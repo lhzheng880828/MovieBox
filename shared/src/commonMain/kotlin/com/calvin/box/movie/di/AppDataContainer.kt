@@ -23,6 +23,7 @@ import com.calvin.box.movie.api.config.LiveConfig
 import com.calvin.box.movie.api.config.VodConfig
 import com.calvin.box.movie.api.config.WallConfig
 import com.calvin.box.movie.db.MoiveDatabase
+import com.calvin.box.movie.okhttpSetup
 import com.calvin.box.movie.pref.BasePreference
 import com.calvin.box.movie.pref.MoivePreferenceImpl
 import kotlinx.coroutines.CoroutineScope
@@ -40,8 +41,21 @@ class AppDataContainer(
         dataFactory.createRoomDatabase()
     }
 
+    val settingsRepository:SettingsRepository by lazy {
+        SettingsRepository(factory,
+            dataFactory,
+            scope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
+        )
+    }
+
+    val prefApi:BasePreference by lazy {
+        MoivePreferenceImpl(settingsRepository,
+            scope = CoroutineScope(Dispatchers.Default + SupervisorJob()),)
+    }
+
     init {
         MoiveDatabase.set(movieDatabase)
+        okhttpSetup(prefApi)
     }
 
     val fakeRepository: FakeDataRepository by lazy {
@@ -62,17 +76,8 @@ class AppDataContainer(
             )
     }
 
-     val settingsRepository:SettingsRepository by lazy {
-        SettingsRepository(factory,
-            dataFactory,
-            scope = CoroutineScope(Dispatchers.Default + SupervisorJob()),
-            )
-    }
 
-    val prefApi:BasePreference by lazy {
-        MoivePreferenceImpl(settingsRepository,
-            scope = CoroutineScope(Dispatchers.Default + SupervisorJob()),)
-    }
+
 
     val vodRepository:VodConfig by lazy {
         vod.init(this)

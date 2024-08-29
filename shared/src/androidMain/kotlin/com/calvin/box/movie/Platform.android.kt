@@ -21,8 +21,11 @@ import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.nano.Server
 import com.calvin.box.movie.player.Source
+import com.calvin.box.movie.pref.AndroidPref
+import com.calvin.box.movie.pref.BasePreference
 import com.calvin.box.movie.utils.Sniffer
 import com.github.catvod.Init
+import com.github.catvod.bean.Doh
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderDebug
 import com.github.catvod.crawler.SpiderNull
@@ -34,6 +37,10 @@ import com.github.catvod.utils.Util
 import dalvik.system.DexClassLoader
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -42,7 +49,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Headers
 import okhttp3.Response
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStreamWriter
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -70,6 +79,24 @@ class AndroidPlatform : Platform {
         }
     }
 
+    override fun writeStringToFile(fileName: String, content: String) {
+            try {
+                // 获取文件目录
+                val fileDir = appContext.filesDir
+                // 创建文件对象
+                val file = File(fileDir, fileName)
+
+                // 使用 FileOutputStream 写入数据
+                FileOutputStream(file).use { fos ->
+                    OutputStreamWriter(fos).use { writer ->
+                        writer.write(content)
+                        writer.flush()  // 确保所有数据都被写入文件
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+    }
 
 }
 
@@ -330,7 +357,7 @@ class AndroidSpiderLoader: SpiderLoader {
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = vodFlag
             result.setUrl((Source.fetch(result)))
-            result.header = (site.header)
+            result.header = site.header.toString()
             result.key = (key)
             return result
         } else if (site.type == 4) {
@@ -342,7 +369,7 @@ class AndroidSpiderLoader: SpiderLoader {
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = (flag)
             result.setUrl(Source.fetch(result))
-            result.header = (site.header)
+            result.header = (site.header).toString()
             return result
         } else if (site.isEmpty() && "push_agent" == key) {
             val result = Result()
@@ -365,7 +392,7 @@ class AndroidSpiderLoader: SpiderLoader {
             val result = Result()
             result.url = url?:Url()
             result.flag = flag
-            result.header = (site.header)
+            result.header = (site.header).toString()
             result.playUrl = site.playUrl
             result.setUrl(Source.fetch(result))
             result.parse = (
@@ -428,17 +455,17 @@ class AndroidSpiderLoader: SpiderLoader {
         if (site.type > 2 || result.list.isEmpty() || result.list[0].vodPic.isNotEmpty()
         ) return result
         val ids = ArrayList<String?>()
-        if (site.categories.isEmpty()) for (item in result.list) ids.add(item.vodId)
+        if (site.categories.isEmpty()) for (item in result.list) ids.add(item.vodId.toString())
         else for (item in result.list) if (site.categories
                 .contains(item.typeName)
-        ) ids.add(item.vodId)
+        ) ids.add(item.vodId.toString())
         if (ids.isEmpty()) return result.clear()
         val params = ArrayMap<String, String>()
         params["ac"] = if (site.type == 0) "videolist" else "detail"
         params["ids"] = TextUtils.join(",", ids)
-        val response: String =
-            OkHttp.newCall(site.api, getOKhttpHeaders(site.header), params).execute().body?.string()
-                ?:"";
+        val body = OkHttp.newCall(site.api, getOKhttpHeaders(site.header), params).execute().body
+        val response: String = body?.string() ?:""
+        body?.close()
         result.list = (Result.fromType(site.type, response).list )
         return result
     }
@@ -522,3 +549,12 @@ class AndroidNanoServer: NanoServer{
 }
 
 actual fun getNanoServer():NanoServer  = AndroidNanoServer()
+
+actual fun okhttpSetup(pref:BasePreference){
+    val proxy = AndroidPref.getString("proxy")
+    Napier.d { "set okhttp proxy: $proxy" }
+    OkHttp.get().setProxy(proxy)
+
+    /*val doh =  runBlocking { pref.doh.get() }
+    OkHttp.get().setDoh( Doh.objectFrom(doh))*/
+}
