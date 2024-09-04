@@ -29,6 +29,7 @@ import com.calvin.box.movie.pref.AndroidPref
 import com.calvin.box.movie.pref.BasePreference
 import com.calvin.box.movie.utils.Sniffer
 import com.github.catvod.Init
+import com.github.catvod.bean.Doh
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderDebug
 import com.github.catvod.crawler.SpiderNull
@@ -40,6 +41,10 @@ import com.github.catvod.utils.HostUtil
 import dalvik.system.DexClassLoader
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
