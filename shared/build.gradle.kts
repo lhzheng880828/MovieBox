@@ -40,6 +40,10 @@ kotlin {
     jvm()
     
     sourceSets {
+        val commonMain by getting {
+            kotlin.srcDir("$buildDir/generated/versioninfo")
+        }
+
         commonMain.dependencies {
             // put your Multiplatform dependencies here
             api(libs.androidx.datastore.preferences.core)
@@ -93,6 +97,38 @@ kotlin {
 
         }
     }
+}
+//version =  "1.0.x" gradle.properties
+extra["versionCode"] = 1
+
+val generateVersionInfo: Task by tasks.creating {
+    val outputDir = "$buildDir/generated/versioninfo"
+    val versionName = project.version.toString()
+    val versionCode = project.extra["versionCode"].toString()
+
+    inputs.property("versionName", versionName)
+    inputs.property("versionCode", versionCode)
+
+    outputs.dir(outputDir)
+
+    doLast {
+        val versionFile = File(outputDir, "AppVersionInfo.kt")
+        versionFile.parentFile.mkdirs()
+        versionFile.writeText(
+            """
+            package com.calvin.box.movie
+
+            object AppVersionInfo {
+                const val VERSION_NAME = "$versionName"
+                const val VERSION_CODE = $versionCode
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    dependsOn(generateVersionInfo)
 }
 
 android {

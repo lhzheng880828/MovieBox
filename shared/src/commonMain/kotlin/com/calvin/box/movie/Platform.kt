@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Class
+import com.calvin.box.movie.bean.Doh
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
@@ -33,6 +34,10 @@ interface Platform {
 
     fun writeStringToFile(fileName: String, content: String)
 
+    fun setDoh(doh: Doh)
+    fun setProxy(proxy: String)
+
+    fun getVersion():String
 }
 
 expect fun getPlatform(): Platform

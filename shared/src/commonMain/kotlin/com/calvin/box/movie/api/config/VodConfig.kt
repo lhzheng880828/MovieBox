@@ -245,7 +245,8 @@ class VodConfig {
     }*/
 
     fun getDoh(): List<Doh> {
-        val items: MutableList<Doh> = Doh.get()
+        val items: MutableList<Doh> = Doh.def()
+        if(doh.isEmpty()) return items
         items.removeAll(doh)
         items.addAll(doh)
         return items
@@ -260,7 +261,7 @@ class VodConfig {
     }
 
     fun setRules(rules: MutableList<Rule>) {
-       // for (rule in rules) if ("proxy" == rule.name) OkHttp.selector().setHosts(rule.hosts)
+       //for (rule in rules) if ("proxy" == rule.name) HostOkHttp.selector().setHosts(rule.hosts)
         rules.remove(Rule.create("proxy"))
         this.rules = rules
     }
@@ -275,16 +276,20 @@ class VodConfig {
 
     fun getParses(type: Int): List<Parse> {
         val items: MutableList<Parse> =  mutableListOf()
-        for (item in getParses()) if (item.type == type) items.add(item)
+        for (item in parses) if (item.type == type) items.add(item)
         return items
     }
 
-    fun getParses(type: Int, flag: String?): List<Parse> {
+    fun getParses(type: Int, flag: String): List<Parse> {
         val items: MutableList<Parse> = mutableListOf()
-        for (item in getParses(type)) if (item.ext.flag.isEmpty() || item.ext.flag
-                .contains(flag)
-        ) items.add(item)
-        if (items.isEmpty()) items.addAll(getParses(type))
+        for (item in getParses(type)) {
+            if (item.ext.flag.isEmpty() || item.ext.flag.contains(flag)) {
+                items.add(item)
+            }
+        }
+        if (items.isEmpty()){
+            items.addAll(getParses(type))
+        }
         return items
     }
 
@@ -373,7 +378,12 @@ class VodConfig {
         }
 
         fun load(config: Config, callback: Callback?) {
-           // get().clear().config(config).load(callback)
+           runBlocking {
+               get().clear()
+           }
+            get().config = config
+            get().load(callback)
+
         }
     }
 }

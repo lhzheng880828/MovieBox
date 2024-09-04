@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity() {
 }
 
 
-
 @Preview(name = "Light Mode", heightDp = 100, device = Devices.PIXEL_4)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark Mode",device = Devices.PIXEL_4)
 @Composable

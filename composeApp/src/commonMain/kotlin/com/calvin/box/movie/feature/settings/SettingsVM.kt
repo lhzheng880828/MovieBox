@@ -18,10 +18,13 @@ package com.calvin.box.movie.feature.settings
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import com.calvin.box.movie.AppVersionInfo
 import com.calvin.box.movie.DiceRoller
 import com.calvin.box.movie.DiceSettings
 import com.calvin.box.movie.bean.Config
+import com.calvin.box.movie.bean.Doh
 import com.calvin.box.movie.di.AppDataContainer
+import com.calvin.box.movie.getPlatform
 import com.calvin.box.movie.pref.toggle
 import com.calvin.box.movie.theme.DynamicColorsAvailable
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +32,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.max
 
 class SettingsViewModel(
     private val roller: DiceRoller,
@@ -47,6 +51,7 @@ class SettingsViewModel(
 
     private val preferences  = appDataContainer.prefApi
     private val movieRepo = appDataContainer.movieRepository
+    private val vodRepo = appDataContainer.vodRepository
 
     val uiState: StateFlow<SettingsUiState?> = preferences.theme.flow.map {
         val use = preferences.useDynamicColors.get()
@@ -65,13 +70,22 @@ class SettingsViewModel(
             }
             vodUrlList = urls
         }
-
-
         val liveUrl = preferences.liveUrl.get()
         val wallPaperUrl = preferences.wallpaperUrl.get()
 
+        val dohList = vodRepo.getDoh()
+        val dohIndex =max(
+            0u,
+            dohList.indexOf( Doh.objectFrom(preferences.doh.get())).toUInt()
+        )
+        val proxy = preferences.proxy.get()
+
+
         val volume = preferences.volume.get()
-        SettingsUiState(theme = it, dynamicColorsAvailable = DynamicColorsAvailable, use, vodUrl, vodName, vodUrlList, liveUrl, wallPaperUrl, volume)
+        SettingsUiState(theme = it, dynamicColorsAvailable = DynamicColorsAvailable,
+            useDynamicColors =  use, vodUrl = vodUrl, vodName = vodName, vodUrls = vodUrlList,
+            liveUrl = liveUrl, wallPaperUrl =  wallPaperUrl, volume =  volume, dohList = dohList,
+            dohIndex = dohIndex, proxy = proxy)
     }.stateIn(
         screenModelScope,
         SharingStarted.WhileSubscribed(5000L),
@@ -141,11 +155,44 @@ class SettingsViewModel(
             is SettingsUiEvent.SetLiveUrl ->  {
                 screenModelScope.launch{
                     preferences.liveUrl.set(event.liveUrl)
+
                 }
             }
             is SettingsUiEvent.SetWallPaperUrl -> {
                 screenModelScope.launch{
                     preferences.wallpaperUrl.set(event.wallPaperUrl)
+                }
+            }
+
+            SettingsUiEvent.NavigateOpenSource ->  {
+
+            }
+            SettingsUiEvent.NavigatePrivacyPolicy ->  {
+
+            }
+            SettingsUiEvent.ToggleAnalyticsDataReporting -> {
+
+            }
+            SettingsUiEvent.ToggleCrashDataReporting ->  {
+
+            }
+            SettingsUiEvent.NavigatePersonalizationSettings -> {
+
+            }
+            SettingsUiEvent.NavigatePlayerSettings -> {
+
+            }
+
+            is SettingsUiEvent.SetDoh ->  {
+                screenModelScope.launch{
+                    preferences.doh.set(Doh.encodeToString(event.doh))
+                    getPlatform().setDoh(event.doh)
+                }
+            }
+            is SettingsUiEvent.SetProxy ->  {
+                screenModelScope.launch{
+                    preferences.proxy.set(event.proxy)
+                    getPlatform().setProxy(event.proxy)
                 }
             }
         }

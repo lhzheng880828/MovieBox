@@ -12,12 +12,13 @@ import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class OkProxySelector extends ProxySelector {
 
-    private List<String> hosts;
+    private List<String> hosts = new ArrayList<>();
     private Proxy proxy;
 
     public void setHosts(List<String> hosts) {
@@ -26,6 +27,14 @@ public class OkProxySelector extends ProxySelector {
 
     public void setProxy(String proxy) {
         this.proxy = getProxy(proxy);
+    }
+
+    public void addAll(List<String> hosts) {
+        this.hosts.addAll(hosts);
+    }
+
+    public void clear() {
+        this.hosts.clear();
     }
 
     @Override

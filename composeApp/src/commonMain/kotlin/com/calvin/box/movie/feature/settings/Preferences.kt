@@ -56,7 +56,7 @@ fun EditTextPreference(
     title: String,
     modifier: Modifier = Modifier,
     summary: String? = null,
-    placeholder: String = "",
+    placeholder: String = "http://127.0.0.1:9978",
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var tempValue by remember { mutableStateOf(value) }
@@ -74,7 +74,12 @@ fun EditTextPreference(
             text = {
                 OutlinedTextField(
                     value = tempValue,
-                    onValueChange = { tempValue = it },
+                    onValueChange = {
+                        tempValue = it
+                        if(title=="Proxy"){
+                           tempValue = detect(it)
+                        }
+                    },
                     placeholder = { Text(placeholder) },
                     singleLine = true
                 )
@@ -96,6 +101,26 @@ fun EditTextPreference(
     }
 }
 
+private var append = true
+
+private fun detect(s: String):String {
+    var newStr = s
+    if (append && "h".equals(s, ignoreCase = true)) {
+        append = false
+        newStr = s+("ttp://")
+    } else if (append && "s".equals(s, ignoreCase = true)) {
+        append = false
+        newStr =  s+("ocks5://")
+    } else if (append && s.length == 1) {
+        append = false
+        newStr = "socks5://$s"
+    } else if (s.length > 1) {
+        append = false
+    } else if (s.isEmpty()) {
+        append = true
+    }
+    return newStr
+}
 
 
 @Composable
@@ -241,12 +266,12 @@ fun Preference(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
                 )
 
                 if (summary != null) {
                     ProvideTextStyle(
-                        MaterialTheme.typography.bodyMedium.copy(
+                        MaterialTheme.typography.labelMedium.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                     ) {
@@ -629,56 +654,6 @@ fun HistoryDialog(
             TextButton(onClick = onDismiss) {
                 Text("Close")
             }
-        }
-    )
-}
-
-
-@Composable
-fun PreferenceScreen() {
-
-
-
-    var liveAddress by remember { mutableStateOf("") }
-    val sites = remember { listOf("Site 1", "Site 2", "Site 3") }
-    val history = remember { mutableStateListOf("History 1", "History 2", "History 3") }
-
-    LivePreference(
-        liveAddress = liveAddress,
-        onLiveAddressChange = { liveAddress = it },
-        sites = sites,
-        onSiteSelected = { selectedSite ->
-            liveAddress = "http://$selectedSite"
-        },
-        history = history,
-        onHistorySelected = { selectedHistory ->
-            liveAddress = selectedHistory
-        },
-        onHistoryDeleted = { itemToDelete ->
-            history.remove(itemToDelete)
-        },
-        onFileSelected = { filePath ->
-            // TODO: Implement file import logic
-            liveAddress = filePath
-        }
-    )
-
-    var wallpaperAddress by remember { mutableStateOf("") }
-    WallPaperPreference(
-        wallpaperAddress = wallpaperAddress,
-        onWallpaperAddressChange = { wallpaperAddress = it },
-        onSwitchWallpaper = {
-            // 实现切换壁纸的逻辑
-            println("Switching wallpaper")
-        },
-        onRefreshWallpaper = {
-            // 实现刷新壁纸的逻辑
-            println("Refreshing wallpaper")
-        },
-        onFileSelected = { filePath ->
-            // 实现文件选择逻辑
-            println("Selected file: $filePath")
-            wallpaperAddress = filePath
         }
     )
 }

@@ -40,7 +40,7 @@ class MoivePreferenceImpl(
     }
 
     override val doh: Preference<String> by lazy {
-        StringPreference(KEY_DOH, "")
+        StringPreference(KEY_DOH, "{}")
     }
     override val proxy: Preference<String> by lazy {
         StringPreference(KEY_PROXY, "")

@@ -1,6 +1,8 @@
 package com.calvin.box.movie
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.icu.util.VersionInfo
 import android.net.Uri
 import android.os.Build
 import android.text.TextUtils
@@ -14,6 +16,7 @@ import com.calvin.box.movie.api.config.VodConfig
 import com.calvin.box.movie.api.loader.JsLoader
 import com.calvin.box.movie.api.loader.PyLoader
 import com.calvin.box.movie.bean.Channel
+import com.calvin.box.movie.bean.Config
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
@@ -29,7 +32,7 @@ import com.calvin.box.movie.pref.AndroidPref
 import com.calvin.box.movie.pref.BasePreference
 import com.calvin.box.movie.utils.Sniffer
 import com.github.catvod.Init
-import com.github.catvod.bean.Doh
+import com.calvin.box.movie.bean.Doh
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderDebug
 import com.github.catvod.crawler.SpiderNull
@@ -101,6 +104,27 @@ class AndroidPlatform : Platform {
                 e.printStackTrace()
             }
     }
+
+    override fun setDoh(doh: Doh) {
+        Source.stop();
+        HostOkHttp.get().setDoh(com.github.catvod.bean.Doh().name(doh.name).url(doh.url).ips(doh.ips));
+        //Notify.progress(getActivity());
+        VodConfig.load(Config.vod(), null);
+    }
+
+    override fun setProxy(proxy: String) {
+        Source.stop();
+        HostOkHttp.selector().clear();
+        HostOkHttp.get().setProxy(proxy);
+        //Notify.progress(getActivity());
+        VodConfig.load(Config.vod(),  null);
+        //mBinding.proxyText.setText(UrlUtil.scheme(proxy));
+    }
+
+    override fun getVersion(): String {
+        return ""
+    }
+
 
 }
 
@@ -296,9 +320,14 @@ class AndroidSpiderLoader: SpiderLoader {
                 return Result.fromJson(homeContent)
             } else {
                 val homeContent: String =
-                    HostOkHttp.newCall(site.api, getOKhttpHeaders(site.header)).execute()
-                        .body?.string() ?:""
-                SpiderDebug.log(homeContent )
+                    try {
+                        HostOkHttp.newCall(site.api, getOKhttpHeaders(site.header)).execute()
+                            .body?.string() ?:""
+                    } catch (e: Exception) {
+                         e.printStackTrace()
+                        "{}"
+                    }
+                SpiderDebug.log(homeContent)
                 return fetchPic(site, Result.fromType(site.type, homeContent))
             }
 
