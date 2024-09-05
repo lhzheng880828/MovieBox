@@ -23,15 +23,15 @@ data class SettingsUiState(
 
     val proxy: String = "",
 
-    val cacheSize: String = "0 KB",
-    val version: String = "1.0.0",
-    val about: String = "",
+    var cacheSize: String = "0 KB",
+    val versionName: String = "1.0.0",
+    val versionCode: Int = 0,
+    val about: String = "公众号：虎哥LoveOpenSource",
 
     val volume: Int = 0,
     val  crashDataReportingEnabled: Boolean = false,
     val analyticsDataReportingEnabled: Boolean = false,
-    val versionName: String = "",
-    val versionCode: String = "",
+
     val showDeveloperSettings: Boolean = false,
     val openSourceLicenseAvailable: Boolean = false,
 
@@ -55,6 +55,9 @@ sealed interface SettingsUiEvent  {
     data object ToggleCrashDataReporting: SettingsUiEvent
     data object ToggleAnalyticsDataReporting: SettingsUiEvent
     data object NavigateOpenSource: SettingsUiEvent
+    data object ClearCache: SettingsUiEvent
+
+    data object DownloadApp: SettingsUiEvent
 
 
     data class SetVolume(val volume: Int): SettingsUiEvent

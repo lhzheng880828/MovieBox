@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.calvin.box.movie.bean.Channel
+import com.calvin.box.movie.bean.Doh
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
@@ -12,8 +13,12 @@ import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.di.getDataStore
 import com.calvin.box.movie.pref.BasePreference
+import com.calvin.box.movie.utils.FileDownloader
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.net.URLClassLoader
 import java.io.File
 
@@ -47,9 +52,53 @@ class JVMPlatform: Platform {
         TODO("Not yet implemented")
     }
 
+    override fun setDoh(doh: Doh) {
+        TODO("Not yet implemented")
+    }
+
+    override fun setProxy(proxy: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getVersion(): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun getCacheSize(): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearCache() {
+        TODO("Not yet implemented")
+    }
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()
+
+actual suspend fun FileDownloader.saveFile(channel: ByteReadChannel, savePath: String, totalSize: Long) {
+    withContext(Dispatchers.IO) {
+        val file = File(savePath)
+        file.outputStream().use { outputStream ->
+            var bytesCopied = 0L
+            while (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                val bytes = packet.readBytes()
+                outputStream.write(bytes)
+                bytesCopied += bytes.size
+
+                // Calculate and report progress
+                if (totalSize > 0) {
+                    val progress = (bytesCopied * 100 / totalSize).toInt()
+                    callback.onProgress(progress)
+                }
+            }
+        }
+    }
+}
+
+actual fun FileDownloader.savePath():String{
+    return  ""
+}
 
 actual class PlatformDecoder : AesDecoder by JvmDecoder()
 // jvmMain

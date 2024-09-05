@@ -1,12 +1,10 @@
 package com.calvin.box.movie
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.icu.util.VersionInfo
+import android.icu.text.DecimalFormat
 import android.net.Uri
 import android.os.Build
 import android.text.TextUtils
-import androidx.annotation.RequiresApi
 import androidx.collection.ArrayMap
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -17,6 +15,7 @@ import com.calvin.box.movie.api.loader.JsLoader
 import com.calvin.box.movie.api.loader.PyLoader
 import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Config
+import com.calvin.box.movie.bean.Doh
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
@@ -26,26 +25,25 @@ import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.nano.Server
 import com.calvin.box.movie.player.AndroidSource
-import com.calvin.box.movie.player.Extractor
 import com.calvin.box.movie.player.Source
 import com.calvin.box.movie.pref.AndroidPref
 import com.calvin.box.movie.pref.BasePreference
+import com.calvin.box.movie.utils.FileDownloader
 import com.calvin.box.movie.utils.Sniffer
 import com.github.catvod.Init
-import com.calvin.box.movie.bean.Doh
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderDebug
 import com.github.catvod.crawler.SpiderNull
 import com.github.catvod.net.HostOkHttp
 import com.github.catvod.utils.Asset
+import com.github.catvod.utils.HostUtil
 import com.github.catvod.utils.Path
 import com.github.catvod.utils.Trans
-import com.github.catvod.utils.HostUtil
 import dalvik.system.DexClassLoader
 import io.github.aakira.napier.Napier
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -61,6 +59,8 @@ import java.io.IOException
 import java.io.OutputStreamWriter
 import java.math.BigInteger
 import java.security.MessageDigest
+import kotlin.math.log10
+import kotlin.math.pow
 
 class AndroidPlatform : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
@@ -125,7 +125,61 @@ class AndroidPlatform : Platform {
         return ""
     }
 
+    override fun getCacheSize(): String {
+        val size = getCacheSize(Path.cache())
+         return byteCountToDisplaySize(size)
+    }
+    private fun getCacheSize(file: File): Long {
+        var size: Long = 0
+        if (file.isDirectory) {
+            file.listFiles()?.forEach {
+                size += getCacheSize(it)
+            }
+        } else {
+            size = file.length()
+        }
+        return size
+    }
 
+    private fun byteCountToDisplaySize(size: Long): String {
+        if (size <= 0) return "0 KB"
+        val units = arrayOf("bytes", "KB", "MB", "GB", "TB")
+        val digitGroups = (log10(size.toDouble()) / log10(1024.0)).toInt()
+        return DecimalFormat("#,##0.#").format(size / 1024.0.pow(digitGroups.toDouble())) + " " + units[digitGroups]
+    }
+
+    override fun clearCache() {
+        runBlocking (Dispatchers.IO){
+            Path.clear(Path.cache())
+            VodConfig.get().getConfig().json("").save()
+        }
+    }
+
+}
+
+actual suspend fun FileDownloader.saveFile(channel: ByteReadChannel, savePath: String, totalSize: Long) {
+    withContext(Dispatchers.IO) {
+        val file = File(savePath)
+        file.outputStream().use { outputStream ->
+            var bytesCopied = 0L
+            while (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                val bytes = packet.readBytes()
+                outputStream.write(bytes)
+                bytesCopied += bytes.size
+
+                // Calculate and report progress
+                if (totalSize > 0) {
+                    val progress = (bytesCopied * 100 / totalSize).toInt()
+                    callback.onProgress(progress)
+                }
+            }
+        }
+    }
+}
+
+actual fun FileDownloader.savePath():String{
+    return Path.cache("update.apk").absolutePath
 }
 
 actual fun getPlatform(): Platform = AndroidPlatform()

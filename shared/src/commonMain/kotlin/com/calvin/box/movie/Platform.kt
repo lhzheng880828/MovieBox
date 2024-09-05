@@ -13,10 +13,12 @@ import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.network.MoiveApi
 import com.calvin.box.movie.network.MoiveNetworkApi
 import com.calvin.box.movie.pref.BasePreference
+import com.calvin.box.movie.utils.FileDownloader
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.serialization.json.Json
@@ -35,9 +37,16 @@ interface Platform {
     fun writeStringToFile(fileName: String, content: String)
 
     fun setDoh(doh: Doh)
+
     fun setProxy(proxy: String)
 
     fun getVersion():String
+
+    fun getCacheSize():String
+
+    fun clearCache()
+
+
 }
 
 expect fun getPlatform(): Platform
@@ -177,3 +186,10 @@ fun getMoiveDataStore(producePath: () -> String): DataStore<Preferences> =
     }
 
 internal const val moiveDsFileName = "moive.preferences_pb"
+expect suspend fun FileDownloader.saveFile(
+    channel: ByteReadChannel,
+    savePath: String,
+    totalSize: Long
+)
+
+expect fun FileDownloader.savePath():String

@@ -98,16 +98,24 @@ kotlin {
         }
     }
 }
-//version =  "1.0.x" gradle.properties
+version = "1.0.112"
 extra["versionCode"] = 1
+extra["flavorApi"] = "Java"
+extra["flavorAbi"] = "arm64"
+
 
 val generateVersionInfo: Task by tasks.creating {
     val outputDir = "$buildDir/generated/versioninfo"
     val versionName = project.version.toString()
     val versionCode = project.extra["versionCode"].toString()
+    val flavorApi = project.extra["flavorApi"].toString()
+    val flavorAbi = project.extra["flavorAbi"].toString()
+
 
     inputs.property("versionName", versionName)
     inputs.property("versionCode", versionCode)
+    inputs.property("flavorApi", flavorApi)
+    inputs.property("flavorAbi", flavorAbi)
 
     outputs.dir(outputDir)
 
@@ -121,6 +129,8 @@ val generateVersionInfo: Task by tasks.creating {
             object AppVersionInfo {
                 const val VERSION_NAME = "$versionName"
                 const val VERSION_CODE = $versionCode
+                const val FLAVOR_API = "$flavorApi"
+                const val FLAVOR_ABI = "$flavorAbi"
             }
             """.trimIndent()
         )

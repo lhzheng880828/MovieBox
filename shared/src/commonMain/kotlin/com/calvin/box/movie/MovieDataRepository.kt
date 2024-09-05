@@ -2,8 +2,10 @@ package com.calvin.box.movie
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.calvin.box.movie.bean.ApkVersion
 import com.calvin.box.movie.bean.Class
 import com.calvin.box.movie.bean.Config
+import com.calvin.box.movie.bean.DownloadStatus
 import com.calvin.box.movie.bean.Hot
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
@@ -53,6 +55,13 @@ class MovieDataRepository (
 
     suspend fun getSuggest(keyword: String):Flow<List<String>>{
         return api.getSuggest(keyword)
+    }
+
+    suspend fun getApkVersion(dev:Boolean, name:String): ApkVersion{
+        return api.getApkVersion(dev, name)
+    }
+    fun download(dev: Boolean, name: String): Flow<DownloadStatus>{
+        return api.download(dev, name)
     }
 
     suspend fun loadHomeContent(site: Site):Result{

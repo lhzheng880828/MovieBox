@@ -24,7 +24,7 @@ public class Doh {
     @SerializedName("url")
     private String url;
     @SerializedName("ips")
-    private List<String> ips;
+    private List<String> ips = new ArrayList<>();
 
     public static List<Doh> get(Context context) {
         List<Doh> items = new ArrayList<>();

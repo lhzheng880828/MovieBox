@@ -28,6 +28,7 @@ import moviebox.composeapp.generated.resources.settings_open_source_summary
 import moviebox.composeapp.generated.resources.settings_privacy_category_title
 import moviebox.composeapp.generated.resources.view_privacy_policy
 import moviebox.composeapp.generated.resources.developer_settings_title
+import moviebox.composeapp.generated.resources.settings_clear_cache
 import moviebox.composeapp.generated.resources.settings_personalization_title
 import moviebox.composeapp.generated.resources.settings_player_title
 
@@ -65,8 +66,13 @@ class SettingsScreen:Screen {
         val history = remember { mutableStateListOf("History 1", "History 2", "History 3") }
         var wallpaperAddress by remember { mutableStateOf("") }
 
-
+        var cacheSize by remember { mutableStateOf(uiState.cacheSize)  }
         var volume by remember { mutableStateOf(uiState.volume) }
+
+        val updateStatus by viewModel.updateStatus.collectAsState()
+        var updateAvailable by mutableStateOf(updateStatus.updateAvailable)
+        var downloadProgress by mutableStateOf(updateStatus.downloadProgress)
+        var downloadComplete by mutableStateOf(updateStatus.downloadComplete)
 
         Scaffold(
             topBar = {
@@ -236,17 +242,20 @@ class SettingsScreen:Screen {
                     )
                 }
                 item { PreferenceDivider() }
-                item{
-                    EditTextPreference(
-                        value = liveUrl,
-                        onValueChange = {
-                            liveUrl = it
-                            viewModel.eventSink(SettingsUiEvent.SetLiveUrl(liveUrl))
+                item {
+                    Preference(
+                        title = stringResource(Res.string.settings_clear_cache),
+                        summary = {
+                            Text(
+                                text =  cacheSize,
+                            )
                         },
-                        title = "直播地址",
-                        summary = liveUrl
+                        modifier =  Modifier.clickable{
+                            viewModel.eventSink(SettingsUiEvent.ClearCache)
+                        },
                     )
                 }
+                item { PreferenceDivider() }
                 item{
                     EditTextPreference(
                         value = wallPaperUrl,
@@ -314,6 +323,7 @@ class SettingsScreen:Screen {
                         checked = uiState.analyticsDataReportingEnabled,
                     )
                 }
+                item { PreferenceDivider() }
 
                 itemSpacer(24.dp)
                 stickyHeader {
@@ -321,16 +331,30 @@ class SettingsScreen:Screen {
                 }
 
                 item {
-                    Preference(
+                    AppVersionPreference(
                         title = stringResource(Res.string.settings_app_version),
-                        summary = {
-                            Text(
-                                text = stringResource(
-                                    Res.string.settings_app_version_summary,
-                                    uiState./*applicationInfo.*/versionName,
-                                    uiState./*applicationInfo.*/versionCode,
-                                ),
-                            )
+                        summary =  stringResource(
+                            Res.string.settings_app_version_summary,
+                            uiState. versionName,
+                            uiState. versionCode,
+                        ),
+                        updateAvailable = updateAvailable,
+                        downloadComplete = downloadComplete,
+                        downloadProgress = downloadProgress,
+                        onCheckUpdate = {viewModel.forceUpdate()},
+                        onDownloadUpdate = {
+                            viewModel.eventSink(SettingsUiEvent.DownloadApp)
+                        },
+                        onDismiss = {updateAvailable = false},
+                        onInstallUpdate = {},
+                    )
+                }
+                item { PreferenceDivider() }
+                item {
+                    Preference(
+                        title =  "关于",
+                        summary ={
+                            Text(uiState.about)
                         },
                     )
                 }

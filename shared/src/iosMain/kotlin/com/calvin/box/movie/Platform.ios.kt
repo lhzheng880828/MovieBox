@@ -7,6 +7,7 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Class
+import com.calvin.box.movie.bean.Doh
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
@@ -14,24 +15,19 @@ import com.calvin.box.movie.database.dbFileName
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.pref.BasePreference
+import com.calvin.box.movie.utils.FileDownloader
 import platform.UIKit.UIDevice
-import platform.Foundation.NSLocale
-import platform.Foundation.currentLocale
-import platform.Foundation.NSString
-import platform.Foundation.NSURLComponents
-import platform.Foundation.NSURL
 
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import platform.Foundation.NSData
-import platform.Foundation.create
-import platform.Foundation.dataUsingEncoding
-import platform.Foundation.length
-import platform.Foundation.md5
-import platform.Foundation.toByteArray
+
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.readBytes
+import platform.Foundation.*
+import kotlinx.coroutines.withContext
 
 
 class IOSPlatform: Platform {
@@ -58,9 +54,59 @@ class IOSPlatform: Platform {
         TODO("Not yet implemented")
     }
 
+    override fun setDoh(doh: Doh) {
+        TODO("Not yet implemented")
+    }
+
+    override fun setProxy(proxy: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getVersion(): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun getCacheSize(): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearCache() {
+        TODO("Not yet implemented")
+    }
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
+
+
+
+actual suspend fun FileDownloader.saveFile(channel: ByteReadChannel, savePath: String, totalSize: Long) {
+    withContext(Dispatchers.Default) {
+        val fileManager = NSFileManager.defaultManager
+        val data = NSMutableData()
+        var bytesCopied = 0L
+
+        while (!channel.isClosedForRead) {
+            val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+            val bytes = packet.readBytes()
+            data.appendBytes(bytes)
+            bytesCopied += bytes.size
+
+            // Calculate and report progress
+            if (totalSize > 0) {
+                val progress = (bytesCopied * 100 / totalSize).toInt()
+                callback.onProgress(progress)
+            }
+        }
+
+        val path = savePath.toNSString()
+        data.writeToFile(path, true)
+    }
+}
+
+actual fun FileDownloader.savePath():String{
+    return  ""
+}
+
 
 actual class PlatformDecoder : Decoder by IosDecoder()
 

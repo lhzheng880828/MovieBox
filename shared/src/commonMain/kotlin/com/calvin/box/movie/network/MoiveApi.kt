@@ -15,10 +15,15 @@
  */
 package com.calvin.box.movie.network
 
+import com.calvin.box.movie.bean.ApkVersion
+import com.calvin.box.movie.bean.DownloadStatus
 import com.calvin.box.movie.bean.Hot
 import com.calvin.box.movie.bean.Suggest
 import com.calvin.box.movie.bean.SuggestTwo
 import com.calvin.box.movie.model.Fruittie
+import com.calvin.box.movie.savePath
+import com.calvin.box.movie.utils.DownloadCallback
+import com.calvin.box.movie.utils.FileDownloader
 import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -28,8 +33,10 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -39,6 +46,8 @@ interface MoiveApi {
     suspend fun getData(pageNumber: Int = 0): MoivesResponse
     suspend fun getHotword(): Hot
     suspend fun getSuggest(keyword: String): Flow<List<String>>
+    suspend fun getApkVersion(dev:Boolean, name:String):ApkVersion
+    fun download(dev: Boolean, name: String ): Flow<DownloadStatus>
 }
 
 class MoiveNetworkApi(private val client: HttpClient, private val apiUrl: String) : MoiveApi {
@@ -112,6 +121,51 @@ class MoiveNetworkApi(private val client: HttpClient, private val apiUrl: String
         val lastCombinedItems = combinedItems.distinct().take(20)
         emit(lastCombinedItems)
     }
+
+    override suspend fun getApkVersion(dev: Boolean, name: String): ApkVersion {
+        val host = "https://my.t4tv.hz.cz"
+        val apkVersionUrl =
+            host + "/" + "apk/" + (if (dev) "dev" else "release") + "/" + name + ".json"
+        return try {
+            client.get(apkVersionUrl).body()
+        } catch (e: Exception) {
+            //if (e is CancellationException) throw e
+            e.printStackTrace()
+            ApkVersion()
+        }
+    }
+
+    override fun download(dev: Boolean, name: String ): Flow<DownloadStatus> =
+        callbackFlow {
+            val host = "https://my.t4tv.hz.cz"
+            val url =
+                host + "/" + "apk/" + (if (dev) "dev" else "release") + "/" + name + ".apk"
+            trySend(DownloadStatus.Started)
+           val downloader = FileDownloader(client, object : DownloadCallback {
+                override fun onProgress(progress: Int) {
+                    Napier.d("Download progress: $progress%")
+                    trySend(DownloadStatus.Progress(progress))
+                }
+
+                override fun onSuccess(filePath: String) {
+                    Napier.d("Download successful: $filePath")
+                    trySend(DownloadStatus.Success(filePath))
+                    close()
+                }
+
+                override fun onError(exception: Throwable) {
+                    Napier.d("Download failed: ${exception.message}")
+                    trySend(DownloadStatus.Error(exception.message))
+                    close(exception)
+                }
+            })
+            val savePath = downloader.savePath()
+            downloader.downloadFile(url, savePath)
+            awaitClose {
+                Napier.d("Download cancelled")
+                //downloader.cancel()  // 假设 `downloader` 有取消方法，确保下载被中断
+            }
+        }
 }
 
 

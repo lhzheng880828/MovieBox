@@ -49,6 +49,8 @@ fun CheckboxPreference(
     )
 }
 
+
+
 @Composable
 fun EditTextPreference(
     value: String,
@@ -417,6 +419,97 @@ fun EditDialog(
                 Text("确定")
             }
         },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
+}
+
+
+@Composable
+fun AppVersionPreference(
+    updateAvailable: Boolean,
+    downloadProgress: Float,
+    downloadComplete: Boolean,
+    onDismiss: () -> Unit,
+    onCheckUpdate: () -> Unit,
+    onDownloadUpdate: () -> Unit,
+    onInstallUpdate: () -> Unit,
+    title: String,
+    modifier: Modifier = Modifier,
+    summary: String = "",
+) {
+    Preference(
+        title = title,
+        summary = {  Text(summary) },
+        modifier = modifier.clickable { onCheckUpdate() }
+    )
+
+   // var showDialog by remember { mutableStateOf(updateAvailable)  }
+    if (updateAvailable) {
+        UpgradeDialog(
+            title,
+            updateAvailable,
+            downloadProgress,
+            downloadComplete,
+            onDismiss,
+        onDownloadUpdate,
+        onInstallUpdate,
+        )
+    }
+}
+
+@Composable
+fun UpgradeDialog(
+    title: String,
+    updateAvailable: Boolean,
+    downloadProgress: Float,
+    downloadComplete: Boolean,
+    onDismiss: () -> Unit,
+    onDownloadUpdate: () -> Unit,
+    onInstallUpdate: () -> Unit,
+){
+    val updateAvailable by remember { mutableStateOf(updateAvailable) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (updateAvailable) {
+                    Text("新版本可用!")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = onDownloadUpdate) {
+                        Text("下载更新")
+                    }
+                } else {
+                    Text("已是最新版本")
+                }
+
+                if (downloadProgress > 0 && !downloadComplete) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LinearProgressIndicator(progress = {
+                        downloadProgress
+                    } )
+                    Text("下载进度: ${(downloadProgress)}%")
+                }
+
+                if (downloadComplete) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick =onInstallUpdate) {
+                        Text("安装更新")
+                    }
+                }
+            }
+        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("取消")

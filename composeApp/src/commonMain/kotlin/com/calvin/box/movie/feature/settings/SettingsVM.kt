@@ -23,10 +23,14 @@ import com.calvin.box.movie.DiceRoller
 import com.calvin.box.movie.DiceSettings
 import com.calvin.box.movie.bean.Config
 import com.calvin.box.movie.bean.Doh
+import com.calvin.box.movie.bean.DownloadStatus
+import com.calvin.box.movie.bean.UpdateStatus
+import com.calvin.box.movie.bean.VersionCheckStatus
 import com.calvin.box.movie.di.AppDataContainer
 import com.calvin.box.movie.getPlatform
 import com.calvin.box.movie.pref.toggle
 import com.calvin.box.movie.theme.DynamicColorsAvailable
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.*
@@ -41,6 +45,8 @@ class SettingsViewModel(
     private val _result = MutableStateFlow<DiceRollResult>(DiceRollResult.Initial)
     val result: StateFlow<DiceRollResult> = _result.asStateFlow()
 
+    val platformApi = getPlatform()
+
     val settings: StateFlow<DiceSettings?> = appDataContainer.settingsRepository
         .settings
         .stateIn(
@@ -53,46 +59,101 @@ class SettingsViewModel(
     private val movieRepo = appDataContainer.movieRepository
     private val vodRepo = appDataContainer.vodRepository
 
-    val uiState: StateFlow<SettingsUiState?> = preferences.theme.flow.map {
-        val use = preferences.useDynamicColors.get()
-        val vodConfig = movieRepo.loadFirstConfig(Config.TYPE.VOD).flowOn(Dispatchers.IO).firstOrNull()
-        var vodUrl = ""
-        var vodName = ""
-        if(vodConfig != null){
-            vodUrl =  vodConfig.url
-            vodName = vodConfig.name
-        }
-        val voidConfigList = movieRepo.loadAllConfig(Config.TYPE.VOD).flowOn(Dispatchers.IO).firstOrNull()
-        var vodUrlList:List<String> = emptyList()
-        if(voidConfigList!=null){
-           val urls = voidConfigList.map {
-                it.url
+    private val _uiState = MutableStateFlow<SettingsUiState?>(null)
+    val uiState: StateFlow<SettingsUiState?> = _uiState
+
+    private val _updateStatus = MutableStateFlow(UpdateStatus())
+    val updateStatus: StateFlow<UpdateStatus> = _updateStatus
+
+    init {
+        screenModelScope.launch {
+            preferences.theme.flow.collect { theme ->
+                val use = preferences.useDynamicColors.get()
+                val vodConfig = movieRepo.loadFirstConfig(Config.TYPE.VOD).flowOn(Dispatchers.IO).firstOrNull()
+                var vodUrl = ""
+                var vodName = ""
+                if (vodConfig != null) {
+                    vodUrl = vodConfig.url
+                    vodName = vodConfig.name
+                }
+
+                val voidConfigList = movieRepo.loadAllConfig(Config.TYPE.VOD).flowOn(Dispatchers.IO).firstOrNull()
+                var vodUrlList: List<String> = emptyList()
+                if (voidConfigList != null) {
+                    val urls = voidConfigList.map { it.url }
+                    vodUrlList = urls
+                }
+
+                val liveUrl = preferences.liveUrl.get()
+                val wallPaperUrl = preferences.wallpaperUrl.get()
+
+                val dohList = vodRepo.getDoh()
+                val dohIndex = max(
+                    0u,
+                    dohList.indexOf(Doh.objectFrom(preferences.doh.get())).toUInt()
+                )
+
+                val proxy = preferences.proxy.get()
+                val volume = preferences.volume.get()
+
+                val cacheSize = platformApi.getCacheSize()
+                val versionName = AppVersionInfo.VERSION_NAME
+                val versionCode = AppVersionInfo.VERSION_CODE
+
+                val about = "mobile" + AppVersionInfo.FLAVOR_ABI + AppVersionInfo.FLAVOR_API
+
+                // 更新 _uiState
+                _uiState.value = SettingsUiState(
+                    theme = theme,
+                    dynamicColorsAvailable = DynamicColorsAvailable,
+                    useDynamicColors = use,
+                    vodUrl = vodUrl,
+                    vodName = vodName,
+                    vodUrls = vodUrlList,
+                    liveUrl = liveUrl,
+                    wallPaperUrl = wallPaperUrl,
+                    volume = volume,
+                    dohList = dohList,
+                    dohIndex = dohIndex,
+                    proxy = proxy,
+                    cacheSize = cacheSize,
+                    versionName = versionName,
+                    versionCode = versionCode,
+                   // about = about,
+                )
             }
-            vodUrlList = urls
         }
-        val liveUrl = preferences.liveUrl.get()
-        val wallPaperUrl = preferences.wallpaperUrl.get()
+    }
 
-        val dohList = vodRepo.getDoh()
-        val dohIndex =max(
-            0u,
-            dohList.indexOf( Doh.objectFrom(preferences.doh.get())).toUInt()
-        )
-        val proxy = preferences.proxy.get()
+    fun forceUpdate() {
+        screenModelScope.launch{
+            flow {
+                emit(VersionCheckStatus.Checking)
+                val apkVersion = movieRepo.getApkVersion(false,  "mobile")
+                if (needUpdate(apkVersion.code, apkVersion.name)) {
+                    emit(VersionCheckStatus.NeedUpdate(apkVersion.name, apkVersion.desc))
+                } else {
+                    emit(VersionCheckStatus.NoUpdate)
+                }
+            }.flowOn(Dispatchers.IO).collectLatest {
+                if(it is VersionCheckStatus.Checking) {
 
+                } else if(it is VersionCheckStatus.NeedUpdate){
+                    _updateStatus.value = _updateStatus.value.copy(updateAvailable = true)
+                } else if(it is VersionCheckStatus.NoUpdate){
+                    _updateStatus.value = _updateStatus.value.copy(updateAvailable = false)
+                }
 
-        val volume = preferences.volume.get()
-        SettingsUiState(theme = it, dynamicColorsAvailable = DynamicColorsAvailable,
-            useDynamicColors =  use, vodUrl = vodUrl, vodName = vodName, vodUrls = vodUrlList,
-            liveUrl = liveUrl, wallPaperUrl =  wallPaperUrl, volume =  volume, dohList = dohList,
-            dohIndex = dohIndex, proxy = proxy)
-    }.stateIn(
-        screenModelScope,
-        SharingStarted.WhileSubscribed(5000L),
-        null
-    )
+            }
+        }
 
+    }
 
+    private fun needUpdate(code: Int, name: String): Boolean {
+         Napier.d { "network code: $code, name: $name" }
+        return ( name != AppVersionInfo.VERSION_NAME && code >= AppVersionInfo.VERSION_CODE)
+                || code > AppVersionInfo.VERSION_CODE
+    }
 
     fun saveSettings(
         number: Int,
@@ -194,6 +255,37 @@ class SettingsViewModel(
                     preferences.proxy.set(event.proxy)
                     getPlatform().setProxy(event.proxy)
                 }
+            }
+
+            SettingsUiEvent.ClearCache ->  {
+                _uiState.value  =  _uiState.value?.copy(cacheSize = "0 KB")
+                platformApi.clearCache()
+            }
+
+            SettingsUiEvent.DownloadApp -> {
+                val dev = false
+                val name = "mobile-java-arm64_v8a"
+               screenModelScope.launch {
+                   movieRepo.download(dev, name).collectLatest {
+                       if(it is DownloadStatus.Started){
+                           Napier.i { "dowload>>> started" }
+                       } else if (it is DownloadStatus.Progress){
+                          val percent = it.percentage
+                           Napier.i { "dowload>>> percent: $percent" }
+                           _updateStatus.value = _updateStatus.value.copy(downloadProgress = percent.toFloat())
+                       } else if(it is DownloadStatus.Success){
+                           val filePath = it.filePath
+                           Napier.i { "dowload>>> success filePath: $filePath" }
+                           _updateStatus.value = _updateStatus.value.copy(downloadComplete =  true)
+                       } else if(it is DownloadStatus.Error){
+                           val err = it.message
+                           Napier.i { "dowload>>> err: $err" }
+
+
+                       }
+                   }
+               }
+
             }
         }
     }
