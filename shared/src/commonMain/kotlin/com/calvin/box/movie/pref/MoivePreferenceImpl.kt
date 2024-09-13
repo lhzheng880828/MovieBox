@@ -68,7 +68,7 @@ class MoivePreferenceImpl(
     }
 
     override fun decode(player: Int):Preference<Int> {
-        return IntPreference(KEY_DECODE_PREFIX+player, Players.EXO)
+        return IntPreference(KEY_DECODE_PREFIX+player, Players.HARD)
     }
     override val playerLive: Preference<Int> by lazy {
         IntPreference(KEY_PLAYER_LIVE, 0/*getPlayer()*/)
@@ -223,7 +223,11 @@ class MoivePreferenceImpl(
     override val thunderCacheDir: Preference<String> by lazy {
         StringPreference(KEY_THUNDER_CACHE_DIR, "")
     }
+    override val siteSearch: Preference<Boolean>
+        get() = BooleanPreference(KEY_SITE_SEARCH, false)
 
+    override val buildInDownload: Preference<Boolean>
+        get() = BooleanPreference(KEY_BUILDIN_DOWNLOAD, false)
 
     private inner class BooleanPreference(
         private val key: String,
@@ -396,6 +400,10 @@ internal const val KEY_CONFIG_CACHE = "config_cache"
 internal const val KEY_LANGUAGE = "language"
 internal const val KEY_PARSE_WEBVIEW = "parse_webview"
 internal const val KEY_REMOVE_AD = "remove_ad"
+internal const val KEY_SITE_SEARCH = "site_search"
+internal const val KEY_BUILDIN_DOWNLOAD = "buildin_download"
+
+
 internal const val KEY_THUNDER_CACHE_DIR = "thunder_cache_dir"
 
 
@@ -478,6 +486,8 @@ interface BasePreference {
     val language: Preference<Int>
     val parseWebView: Preference<Int>
     val removeAd: Preference<Boolean>
+    val siteSearch:Preference<Boolean>
+    val buildInDownload:Preference<Boolean>
     val thunderCacheDir: Preference<String>
 
 }

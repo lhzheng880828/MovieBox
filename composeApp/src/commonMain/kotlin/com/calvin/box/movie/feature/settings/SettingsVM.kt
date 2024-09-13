@@ -45,7 +45,7 @@ class SettingsViewModel(
     private val _result = MutableStateFlow<DiceRollResult>(DiceRollResult.Initial)
     val result: StateFlow<DiceRollResult> = _result.asStateFlow()
 
-    val platformApi = getPlatform()
+    private val platformApi = getPlatform()
 
     val settings: StateFlow<DiceSettings?> = appDataContainer.settingsRepository
         .settings
@@ -112,14 +112,13 @@ class SettingsViewModel(
                     vodUrls = vodUrlList,
                     liveUrl = liveUrl,
                     wallPaperUrl = wallPaperUrl,
-                    volume = volume,
                     dohList = dohList,
                     dohIndex = dohIndex,
                     proxy = proxy,
                     cacheSize = cacheSize,
                     versionName = versionName,
                     versionCode = versionCode,
-                   // about = about,
+                    eventSink = ::eventSink
                 )
             }
         }
@@ -204,12 +203,6 @@ class SettingsViewModel(
             is SettingsUiEvent.DelVodUrl -> {
                 screenModelScope.launch{
                     movieRepo.delConfig(event.vodUrl)
-                }
-            }
-
-            is SettingsUiEvent.SetVolume ->  {
-                screenModelScope.launch{
-                    preferences.volume.set(event.volume)
                 }
             }
 

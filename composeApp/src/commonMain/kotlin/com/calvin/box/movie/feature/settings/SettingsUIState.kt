@@ -8,7 +8,6 @@ import com.calvin.box.movie.bean.Doh
 data class SettingsUiState(
     val theme: Theme = Theme.SYSTEM,
     val dynamicColorsAvailable: Boolean = false,
-    //val openSourceLicenseAvailable: Boolean,
     val useDynamicColors: Boolean = false,
 
     val vodUrl: String = "",
@@ -28,14 +27,13 @@ data class SettingsUiState(
     val versionCode: Int = 0,
     val about: String = "公众号：虎哥LoveOpenSource",
 
-    val volume: Int = 0,
     val  crashDataReportingEnabled: Boolean = false,
     val analyticsDataReportingEnabled: Boolean = false,
 
     val showDeveloperSettings: Boolean = false,
     val openSourceLicenseAvailable: Boolean = false,
 
-    //val eventSink: (SettingsUiEvent) -> Unit?,
+    val eventSink: (SettingsUiEvent) -> Unit?,
 )
 
 sealed interface SettingsUiEvent  {
@@ -59,7 +57,5 @@ sealed interface SettingsUiEvent  {
 
     data object DownloadApp: SettingsUiEvent
 
-
-    data class SetVolume(val volume: Int): SettingsUiEvent
     data class DelVodUrl(val vodUrl: String):SettingsUiEvent
 }

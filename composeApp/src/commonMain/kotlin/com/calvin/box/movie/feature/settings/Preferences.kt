@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.calvin.box.movie.Theme
 import io.github.aakira.napier.Napier
@@ -236,6 +237,7 @@ fun ListPreference(
 
     DropdownMenu(
         expanded = expanded,
+        offset = DpOffset(100.dp, 10.dp),
         onDismissRequest = { expanded = false }
     ) {
         items.forEach { item ->

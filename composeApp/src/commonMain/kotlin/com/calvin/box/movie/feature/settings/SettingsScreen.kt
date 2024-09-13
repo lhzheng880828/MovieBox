@@ -47,6 +47,7 @@ class SettingsScreen:Screen {
         val uiState = settingsUiState ?: return
 
         val nv = LocalNavigator.currentOrThrow
+        val useDynamicColors by remember { mutableStateOf(uiState.useDynamicColors)  }
         var theme by remember { mutableStateOf(uiState.theme) }
         var vodUrl by remember{mutableStateOf(uiState.vodUrl)}
         var vodName by remember{mutableStateOf(uiState.vodName)}
@@ -67,7 +68,6 @@ class SettingsScreen:Screen {
         var wallpaperAddress by remember { mutableStateOf("") }
 
         var cacheSize by remember { mutableStateOf(uiState.cacheSize)  }
-        var volume by remember { mutableStateOf(uiState.volume) }
 
         val updateStatus by viewModel.updateStatus.collectAsState()
         var updateAvailable by mutableStateOf(updateStatus.updateAvailable)
@@ -119,7 +119,7 @@ class SettingsScreen:Screen {
                             title = /*strings.settingsDynamicColorTitle*/"Dynamic Colors",
                             summaryOff = /*strings.settingsDynamicColorSummary*/"use colors derived from your wallpaper",
                             onCheckClicked = { viewModel.eventSink(SettingsUiEvent.ToggleUseDynamicColors) },
-                            checked = uiState.useDynamicColors,
+                            checked = useDynamicColors,
                         )
                     }
 
@@ -201,7 +201,7 @@ class SettingsScreen:Screen {
                     Preference(
                         title = stringResource(Res.string.settings_player_title),
                         modifier = Modifier.clickable{
-                            nv.push(PlayerSettingsScreen())
+                            nv.push(PlayerSetsScreen())
                         },
                     )
                 }
@@ -210,7 +210,7 @@ class SettingsScreen:Screen {
                     Preference(
                         title = stringResource(Res.string.settings_personalization_title),
                         modifier = Modifier.clickable{
-                            nv.push(PersonalizationSettingsScreen())
+                            nv.push(PersonalSetsScreen())
                         },
                     )
                 }
@@ -270,27 +270,6 @@ class SettingsScreen:Screen {
 
 
 
-                item {
-                    SliderPreference(
-                        value = volume/100f,
-                        onValueChange = {
-                            volume = (it*100).toInt()
-                            viewModel.eventSink(SettingsUiEvent.SetVolume(volume))
-
-                        },
-                        title = "音量",
-                        summary = { "当前音量: ${(it * 100).toInt()}%" }
-                    )
-                }
-
-               item {
-                   ListPreference(
-                       title = "选择语言",
-                       items = listOf("简体中文", "English", "日本語"),
-                       onItemSelected = { /* 处理语言选择 */ },
-                       summary = "选择应用界面语言"
-                   )
-               }
 
                 stickyHeader {
                     PreferenceHeader(stringResource(Res.string.settings_privacy_category_title))

@@ -16,6 +16,9 @@ import com.calvin.box.movie.screens.dic.DiceViewModel
 import com.calvin.box.movie.feature.settings.SettingsViewModel
 import com.calvin.box.movie.ui.screens.tabsview.HomeTabViewModel
 import com.calvin.box.movie.feature.collection.SearchScreenModel
+import com.calvin.box.movie.feature.settings.PlayerSetsModel
+import com.calvin.box.movie.feature.settings.PersonalSetsModel
+
 import com.calvin.box.movie.HomeScreenModel
 
 import io.github.aakira.napier.Napier
@@ -81,6 +84,8 @@ val screenModelsModule = module {
     factoryOf( ::VideoPlayerViewModel)
     factoryOf( ::SearchScreenModel )
     factoryOf( ::HomeScreenModel )
+    factoryOf( ::PlayerSetsModel )
+    factoryOf( ::PersonalSetsModel)
 
 }
 
