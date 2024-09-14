@@ -182,8 +182,8 @@ class VodConfig {
             sites.add(site.trans().sync())
         }
         for (site in sites) {
-            //if (site.key == config.home) {
-            if (site.key == "索尼") {
+            if (site.key == config.home) {
+            //if (site.key == "索尼") {
                 setHome(site)
             }
         }
@@ -342,7 +342,7 @@ class VodConfig {
         for (item in getParses()) item.setActivated(parse)
     }
 
-    private fun setHome(home: Site) {
+     fun setHome(home: Site) {
         this.home = home
         this.home!!.activated =true
         runBlocking { config.home(home.key).save() }

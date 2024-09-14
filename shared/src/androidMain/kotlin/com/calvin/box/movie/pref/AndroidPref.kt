@@ -17,38 +17,38 @@ import android.content.Context
  */
 object AndroidPref{
     private fun getPrefers(): SharedPreferences {
-        val context = ContextProvider.context as Context
+        val context = ContextProvider.context as  Context
         return PreferenceManager.getDefaultSharedPreferences(context)
     }
 
-    fun getString(key: String): String {
-        return getString(key, "")
-    }
-
-    @SuppressLint("SuspiciousIndentation")
-    fun getString(key: String, defaultValue: String): String {
-        return try {
-          val prefStr = getPrefers().getString(key, defaultValue)
-            return prefStr?:defaultValue
-        } catch (e: Exception) {
-            defaultValue
+    fun get(key: String, defaultValue: Any): Any {
+        return with(getPrefers()) {
+            when (defaultValue) {
+                is String -> getString(key, defaultValue) ?: defaultValue
+                is Boolean -> getBoolean(key, defaultValue)
+                is Float -> getFloat(key, defaultValue)
+                is Int -> getInt(key, defaultValue)
+                is Long -> getLong(key, defaultValue)
+                is LazilyParsedNumber -> getInt(key, defaultValue.toInt())
+                else -> throw IllegalArgumentException("Unsupported type")
+            }
         }
     }
 
-    fun put(key: String, obj: Any?) {
-        if (obj == null) return
-        if (obj is String) {
-            getPrefers().edit().putString(key, obj as String?).apply()
-        } else if (obj is Boolean) {
-            getPrefers().edit().putBoolean(key, (obj as Boolean?)!!).apply()
-        } else if (obj is Float) {
-            getPrefers().edit().putFloat(key, (obj as Float?)!!).apply()
-        } else if (obj is Int) {
-            getPrefers().edit().putInt(key, (obj as Int?)!!).apply()
-        } else if (obj is Long) {
-            getPrefers().edit().putLong(key, (obj as Long?)!!).apply()
-        } else if (obj is LazilyParsedNumber) {
-            getPrefers().edit().putInt(key, obj.toInt()).apply()
+    @SuppressLint("ApplySharedPref")
+    fun put(key: String, value: Any?) {
+        value?.let {
+            with(getPrefers().edit()) {
+                when (value) {
+                    is String -> putString(key, value)
+                    is Boolean -> putBoolean(key, value)
+                    is Float -> putFloat(key, value)
+                    is Int -> putInt(key, value)
+                    is Long -> putLong(key, value)
+                    is LazilyParsedNumber -> putInt(key, value.toInt())
+                    else -> throw IllegalArgumentException("Unsupported type")
+                }.apply()  // 提交编辑
+            }
         }
     }
 }

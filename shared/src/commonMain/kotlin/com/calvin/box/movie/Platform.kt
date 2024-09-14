@@ -46,6 +46,20 @@ interface Platform {
 
     fun clearCache()
 
+    //player settings
+    fun hasCaption(): Boolean
+    fun isExoPlayer(): Boolean
+
+    //personal settings
+    suspend fun setLanguage()
+
+    fun  resetApp()
+
+    fun setPref(key:String, value: Any)
+
+    fun getPref(key: String, default: Any): Any
+
+    fun getHostOkhttp():Any
 
 }
 

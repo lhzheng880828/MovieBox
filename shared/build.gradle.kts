@@ -65,6 +65,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
         }
         androidMain.dependencies {
+            implementation(libs.lingver)
             implementation(libs.androidx.room.paging)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.nanohttpd)

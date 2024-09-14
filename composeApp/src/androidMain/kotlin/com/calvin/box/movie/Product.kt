@@ -12,7 +12,7 @@ object Product {
     fun getColumn(context:Context): Int {
         var count = if (ResUtil.isLand(context)) 7 else 5
         count += (if (ResUtil.isPad) 1 else 0)
-        return abs(Setting.getSize() - count)
+        return abs(Setting.size - count)
     }
 
     fun getColumn(context: Context, style: Style): Int {

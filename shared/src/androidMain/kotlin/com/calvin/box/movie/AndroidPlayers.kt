@@ -9,8 +9,8 @@ import android.support.v4.media.session.MediaSessionCompat
 import androidx.media3.common.C
 import com.calvin.box.movie.di.AppDataContainer
 import com.calvin.box.movie.impl.SessionCallback
+import com.calvin.box.movie.player.Players
 import kotlinx.coroutines.runBlocking
-import java.lang.Runnable
 import java.util.Formatter
 import java.util.Locale
 
@@ -67,5 +67,29 @@ class AndroidPlayers {
 
     private fun getContext(): Context {
         return ContextProvider.context as Context
+    }
+
+    fun isExo(type: Int): Boolean {
+        return type == Players.EXO
+    }
+
+    fun isHard(decode: Int): Boolean {
+        return decode == Players.HARD
+    }
+
+    fun isHard(): Boolean {
+        return decode == Players.HARD
+    }
+
+    fun isSoft(): Boolean {
+        return decode == Players.SOFT
+    }
+
+    fun isExo(): Boolean {
+        return player == Players.EXO
+    }
+
+    fun isIjk(): Boolean {
+        return player == Players.SYS || player == Players.IJK
     }
 }

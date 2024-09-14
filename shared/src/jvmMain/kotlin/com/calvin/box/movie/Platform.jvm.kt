@@ -71,6 +71,22 @@ class JVMPlatform: Platform {
     override fun clearCache() {
         TODO("Not yet implemented")
     }
+
+    override suspend fun setLanguage() {
+        TODO("Not yet implemented")
+    }
+
+    override fun resetApp() {
+        TODO("Not yet implemented")
+    }
+
+    override fun setPref(key: String, value: Any) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPref(key: String, default: Any): Any {
+        TODO("Not yet implemented")
+    }
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()

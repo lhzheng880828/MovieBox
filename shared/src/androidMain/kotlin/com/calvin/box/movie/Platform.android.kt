@@ -1,9 +1,12 @@
 package com.calvin.box.movie
 
+import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.icu.text.DecimalFormat
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.text.TextUtils
 import androidx.collection.ArrayMap
 import androidx.datastore.core.DataStore
@@ -25,11 +28,14 @@ import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.db.addMoiveMigrations
 import com.calvin.box.movie.nano.Server
 import com.calvin.box.movie.player.AndroidSource
+import com.calvin.box.movie.player.Players
 import com.calvin.box.movie.player.Source
 import com.calvin.box.movie.pref.AndroidPref
 import com.calvin.box.movie.pref.BasePreference
 import com.calvin.box.movie.utils.FileDownloader
+import com.calvin.box.movie.utils.LanguageUtil
 import com.calvin.box.movie.utils.Sniffer
+import com.calvin.box.movie.utils.restartApp
 import com.github.catvod.Init
 import com.github.catvod.crawler.Spider
 import com.github.catvod.crawler.SpiderDebug
@@ -38,12 +44,14 @@ import com.github.catvod.net.HostOkHttp
 import com.github.catvod.utils.Asset
 import com.github.catvod.utils.HostUtil
 import com.github.catvod.utils.Path
+import com.github.catvod.utils.Shell
 import com.github.catvod.utils.Trans
 import dalvik.system.DexClassLoader
 import io.github.aakira.napier.Napier
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -59,6 +67,7 @@ import java.io.IOException
 import java.io.OutputStreamWriter
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.Locale
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -155,6 +164,37 @@ class AndroidPlatform : Platform {
         }
     }
 
+    override fun hasCaption(): Boolean {
+        return Intent(Settings.ACTION_CAPTIONING_SETTINGS).resolveActivity(
+            appContext.packageManager
+        ) != null
+    }
+
+    override fun isExoPlayer(): Boolean {
+        return Setting.player == Players.EXO
+    }
+
+    override suspend fun setLanguage() {
+        LanguageUtil.setLocale(LanguageUtil.getLocale(Setting.language))
+        delay(1000)
+        restartApp()
+    }
+
+    override fun resetApp() {
+        Shell.exec("pm clear " +  appContext.packageName)
+    }
+
+    override fun getPref(key: String, default: Any): Any {
+       return AndroidPref.get(key,default)
+    }
+
+    override fun setPref(key: String, value: Any) {
+         return AndroidPref.put(key, value)
+    }
+
+    override fun getHostOkhttp(): Any {
+       return  HostOkHttp.client()
+    }
 }
 
 actual suspend fun FileDownloader.saveFile(channel: ByteReadChannel, savePath: String, totalSize: Long) {
@@ -181,8 +221,13 @@ actual suspend fun FileDownloader.saveFile(channel: ByteReadChannel, savePath: S
 actual fun FileDownloader.savePath():String{
     return Path.cache("update.apk").absolutePath
 }
-
-actual fun getPlatform(): Platform = AndroidPlatform()
+private var androidPlatform:Platform?=null
+actual fun getPlatform(): Platform  {
+    if(androidPlatform==null){
+        androidPlatform = AndroidPlatform()
+    }
+    return androidPlatform!!
+}
 
 actual class PlatformDecoder : AesDecoder by AndroidDecoder()
 
@@ -246,7 +291,7 @@ actual object HashUtil {
             val no = BigInteger(1, bytes)
             val sb = StringBuilder(no.toString(16))
             while (sb.length < 32) sb.insert(0, "0")
-            sb.toString().toLowerCase()
+            sb.toString().lowercase(Locale.ROOT)
         } catch (e: Exception) {
             ""
         }
@@ -258,6 +303,7 @@ actual object ContextProvider {
 
     fun initialize(context: Context) {
         appContext = context.applicationContext
+        LanguageUtil.init(context as Application)
     }
 
     actual val context: Any
@@ -697,7 +743,7 @@ class AndroidNanoServer: NanoServer{
 actual fun getNanoServer():NanoServer  = AndroidNanoServer()
 
 actual fun okhttpSetup(pref:BasePreference){
-    val proxy = AndroidPref.getString("proxy")
+    val proxy = AndroidPref.get("proxy","") as String
     Napier.d { "set okhttp proxy: $proxy" }
     HostOkHttp.get().setProxy(proxy)
 

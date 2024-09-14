@@ -14,6 +14,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.calvin.box.movie.bean.Site
 import io.github.aakira.napier.Napier
 import moviebox.composeapp.generated.resources.Res
 import moviebox.composeapp.generated.resources.settings_about_category_title
@@ -128,17 +129,20 @@ class SettingsScreen:Screen {
 
                 item {
 
-                    val vodsites = remember { listOf("Site 1", "Site 2", "Site 3") }
-
                     VodPreference(
                         vodAddress = vodUrl,
                         onVodAddressChange = { vodUrl = it },
                         vodName = vodName,
                         onVodNameChange = {vodName = it},
-                        sites = vodsites,
-                        onSiteSelected = { selectedSite ->
-                           // vodUrl = "http://$selectedSite"
-                        },
+                        sites = uiState.sites,
+                       onSiteCallback = object : SiteCallback {
+                           override fun onChanged() {
+                           }
+
+                           override fun setSite(item: Site) {
+                               viewModel.eventSink(SettingsUiEvent.SetVodHomeSite(item))
+                           }
+                       },
                         history = vodhistory,
                         onHistorySelected = { selectedHistory ->
                             vodUrl = selectedHistory

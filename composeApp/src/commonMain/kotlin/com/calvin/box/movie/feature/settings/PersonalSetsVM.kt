@@ -4,7 +4,10 @@ import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.calvin.box.movie.di.AppDataContainer
+import com.calvin.box.movie.getPlatform
 import com.calvin.box.movie.pref.toggle
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -54,7 +57,6 @@ class PersonalSetsModel(appDataContainer: AppDataContainer) : ScreenModel{
     fun eventSink(event: PersonalSetsUiEvent) {
         when (event) {
 
-
             PersonalSetsUiEvent.ToggleAIAdBlocking ->  {
                 screenModelScope.launch {
                     preferences.removeAd.toggle()
@@ -87,11 +89,15 @@ class PersonalSetsModel(appDataContainer: AppDataContainer) : ScreenModel{
                 }
             }
             PersonalSetsUiEvent.ResetApp -> {
-
+                screenModelScope.launch(Dispatchers.IO) {
+                    resetApp()
+                }
             }
             is PersonalSetsUiEvent.SetLanguage -> {
                 screenModelScope.launch {
                     preferences.language.set(event.languageIndex)
+                   getPlatform().setLanguage()
+
                 }
             }
             is PersonalSetsUiEvent.SetImageSize -> {
@@ -111,6 +117,10 @@ class PersonalSetsModel(appDataContainer: AppDataContainer) : ScreenModel{
             }
         }
     }
+}
+
+fun resetApp(){
+    getPlatform().resetApp()
 }
 
 @Immutable

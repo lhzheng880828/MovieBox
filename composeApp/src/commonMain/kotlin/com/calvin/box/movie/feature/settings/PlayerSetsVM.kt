@@ -4,6 +4,8 @@ import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.calvin.box.movie.di.AppDataContainer
+import com.calvin.box.movie.getPlatform
+import com.calvin.box.movie.player.Players
 import com.calvin.box.movie.pref.toggle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +35,8 @@ class PlayerSetsModel(appDataContainer: AppDataContainer) : ScreenModel{
                 // "Automatic Stream Switching" 或 "Auto Line Switching"
                 val autoLineSwitching = preferences.flag
                 val userAgent = preferences.ua
+                val hasCaption = getPlatform().hasCaption()
+                val isExo = getPlatform().isExoPlayer()
                 _uiState.value = PlayerSetsUiState(
                     player = player,
                     decoder = decoder.get(),
@@ -44,7 +48,9 @@ class PlayerSetsModel(appDataContainer: AppDataContainer) : ScreenModel{
                     background = background.get(),
                     rtspTunnel = rtspTunnel.get(),
                     autoLineSwitching = autoLineSwitching.get(),
-                    userAgent = userAgent.get()
+                    userAgent = userAgent.get(),
+                    hasCaption = hasCaption,
+                    isExo = isExo,
                 )
             }
         }
@@ -115,9 +121,11 @@ data class PlayerSetsUiState(
     val render: Int = 0,
     val scale: Int = 0,
     val subtitleSize: Int = 0,
+    val  hasCaption: Boolean = false,
     val subtitleStyle: Boolean = false,
     val danmuLoad: Boolean = false,
     val background: Int = 0,
+    val isExo: Boolean = false,
     val rtspTunnel: Int = 0,
     val autoLineSwitching: Int = 0,
     val userAgent:String = "",

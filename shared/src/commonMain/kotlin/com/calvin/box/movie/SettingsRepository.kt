@@ -68,6 +68,7 @@ class SettingsRepository(private val factory: Factory,
         dataStore.edit {
             it[prefKey] = value
         }
+        getPlatform().setPref(key, value)
     }
 
     override suspend fun getBoolean(key: String, defaultValue: Boolean): Boolean {
@@ -87,6 +88,7 @@ class SettingsRepository(private val factory: Factory,
         dataStore.edit {
             it[prefKey] = value
         }
+        getPlatform().setPref(key, value)
     }
 
     override suspend fun getInt(key: String, defaultValue: Int): Int {
@@ -106,6 +108,7 @@ class SettingsRepository(private val factory: Factory,
         dataStore.edit {
             it[prefKey] = value
         }
+        getPlatform().setPref(key, value)
     }
 
     override suspend fun getFloat(key: String, defaultValue: Float): Float {
@@ -125,6 +128,7 @@ class SettingsRepository(private val factory: Factory,
         dataStore.edit {
             it[prefKey] = value
         }
+        getPlatform().setPref(key, value)
     }
 
     override suspend fun getStringOrNull(key: String):String? {

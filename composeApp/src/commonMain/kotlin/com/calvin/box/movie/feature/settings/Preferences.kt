@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.calvin.box.movie.Theme
+import com.calvin.box.movie.bean.Site
 import io.github.aakira.napier.Napier
 
 @Composable
@@ -526,8 +527,8 @@ fun VodPreference(
     onVodAddressChange: (String) -> Unit,
     vodName: String,
     onVodNameChange: (String) -> Unit,
-    sites: List<String>,
-    onSiteSelected: (String) -> Unit,
+    sites: List<Site>,
+    onSiteCallback: SiteCallback ,
     history: List<String>,
     onHistorySelected: (String) -> Unit,
     onHistoryDeleted: (String) -> Unit,
@@ -574,7 +575,13 @@ fun VodPreference(
     }
 
     if (showSitesDialog) {
-        SitesDialog(sites, onSiteSelected) { showSitesDialog = false }
+        //SitesDialog(sites, onSiteSelected) { showSitesDialog = false }
+        VodSitesDialog(
+            siteCallback = onSiteCallback,
+            sites = sites,
+            onSiteSelected = {},
+
+            ){ showSitesDialog = false }
     }
 
     if (showHistoryDialog) {
@@ -752,3 +759,43 @@ fun HistoryDialog(
         }
     )
 }
+
+@Composable
+fun ResetAppPreference(
+    onResetConfirmed: () -> Unit,  // 确认重置时执行的操作
+    title: String = "重置应用",
+    modifier: Modifier = Modifier,
+    summary: String? = "这将会清除所有应用数据",
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Preference(
+        title = title,
+        summary = {
+            if (summary != null) Text(summary)
+        },
+        modifier = modifier.clickable { showDialog = true }
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("确认重置") },
+            text = { Text("您确定要重置应用吗？这将清除所有应用数据。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onResetConfirmed()  // 执行重置操作
+                    showDialog = false
+                }) {
+                    Text("确定")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+}
+

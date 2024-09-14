@@ -1,13 +1,13 @@
 package com.calvin.box.movie.api.config
 
 import com.calvin.box.movie.App
-import com.calvin.box.movie.Setting
 import com.calvin.box.movie.api.LiveParser
 import com.calvin.box.movie.bean.*
 import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.di.AppDataContainer
+import com.calvin.box.movie.getPlatform
 import com.calvin.box.movie.impl.Callback
-//import kotlinx.serialization.json.Json
+import com.calvin.box.movie.pref.KEY_KEEP
 import kotlinx.serialization.json.JsonObject
 import kotlin.jvm.JvmStatic
 
@@ -194,7 +194,8 @@ class LiveConfig private constructor() {
     }
 
     fun find(items: List<Group>): IntArray {
-        val splits = Setting.getKeep().split(MoiveDatabase.SYMBOL)
+        val keep = getPlatform().getPref(KEY_KEEP,"") as String
+        val splits = keep.split(MoiveDatabase.SYMBOL)
         if (splits.size < 4 || getHome().name != splits[0]) return intArrayOf(1, 0)
         items.forEachIndexed { i, group ->
             if (group.name == splits[1]) {

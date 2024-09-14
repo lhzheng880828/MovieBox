@@ -54,7 +54,7 @@ class PlayerSetsScreen: Screen {
         val backgroundMap = mapOf("0" to "关闭","1" to "开启","2" to "画中画" )
         val subtitleStyleList = listOf("系统", "预设")
 
-        val playerList = listOf("系统", "EXO", "IJK")
+        val playerList = listOf("系统", "IJK", "EXO")
 
         val decoderList =  listOf("硬解", "软解")
         val renderList = listOf("Surface", "Texture")
@@ -69,7 +69,6 @@ class PlayerSetsScreen: Screen {
                     title = { Text("Settings") },
                     navigationIcon = {
                         IconButton(onClick = {
-                            /*viewModel.eventSink(SettingsUiEvent.NavigateUp)*/
                             nv.pop()
                         }) {
                             Icon(
@@ -138,17 +137,19 @@ class PlayerSetsScreen: Screen {
                     )
                 }
 
-                item {
-                    ListPreference(
-                        title = "字幕样式",
-                        items = subtitleStyleList,
-                        onItemSelected = {
-                            subtitleStyle = subtitleStyleList.indexOf(it) == 1
-                            viewModel.eventSink(PlayerSetsUiEvent.ToggleSubtitleStyle)
-                        },
+                if(uiState.hasCaption){
+                    item {
+                        ListPreference(
+                            title = "字幕样式",
+                            items = subtitleStyleList,
+                            onItemSelected = {
+                                subtitleStyle = subtitleStyleList.indexOf(it) == 1
+                                viewModel.eventSink(PlayerSetsUiEvent.ToggleSubtitleStyle)
+                            },
 
-                        summary = subtitleStyleList[ if(subtitleStyle) 1 else 0]
-                    )
+                            summary = subtitleStyleList[ if(subtitleStyle) 1 else 0]
+                        )
+                    }
                 }
 
                 item {
@@ -184,17 +185,21 @@ class PlayerSetsScreen: Screen {
                         summary = backgroundMap[background.toString()]
                     )
                 }
-                item {
-                    ListPreference(
-                        title =  "RTSP通道",
-                        items = rtspTunnelList,
-                        onItemSelected = {
-                            rtspTunnel = rtspTunnelList.indexOf(it)
-                            viewModel.eventSink(PlayerSetsUiEvent.SetRtspTunnel(rtspTunnel))
-                        },
-                        summary = rtspTunnelList[rtspTunnel]
-                    )
+                if(uiState.isExo){
+                    item {
+                        ListPreference(
+                            title =  "RTSP通道",
+                            items = rtspTunnelList,
+                            onItemSelected = {
+                                rtspTunnel = rtspTunnelList.indexOf(it)
+                                viewModel.eventSink(PlayerSetsUiEvent.SetRtspTunnel(rtspTunnel))
+                            },
+                            summary = rtspTunnelList[rtspTunnel]
+                        )
+                    }
+                    //other items
                 }
+
                 item {
                     ListPreference(
                         title =  "线路播放",

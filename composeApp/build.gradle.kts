@@ -68,6 +68,10 @@ kotlin {
             implementation(libs.media3.ui)
             implementation(libs.media3.exoplayer.dash)
             implementation(libs.media3.exoplayer.hls)
+            implementation(libs.media3.datasource.okhttp )
+            implementation("com.github.anilbeesetti.nextlib:nextlib-media3ext:0.8.2") {
+                exclude(group = "androidx.media3", module = "media3-exoplayer")
+            }
 
             //implementation(libs.compose.ui.unit.android)
             //implementation(libs.compose.runtime.android)

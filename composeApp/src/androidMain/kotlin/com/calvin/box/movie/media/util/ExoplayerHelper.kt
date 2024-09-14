@@ -25,6 +25,7 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.calvin.box.movie.player.exo.ExoUtil
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -60,6 +61,10 @@ fun rememberExoPlayerWithLifecycle(
 
     val exoPlayer = remember(context) {
         ExoPlayer.Builder(context)
+            .setLoadControl(ExoUtil.buildLoadControl())
+            .setTrackSelector(ExoUtil.buildTrackSelector())
+            .setRenderersFactory(ExoUtil.buildRenderersFactory())
+            .setMediaSourceFactory(ExoUtil.buildMediaSourceFactory())
             .setTrackSelector(DefaultTrackSelector(context))
             .build()
             .apply {

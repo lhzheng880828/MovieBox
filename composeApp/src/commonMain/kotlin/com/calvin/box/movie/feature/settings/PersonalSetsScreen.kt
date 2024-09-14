@@ -182,16 +182,12 @@ class PersonalSetsScreen:Screen {
                 }
 
                 item {
-                    Preference(
+                    ResetAppPreference(
                         title =  "重置App",
-                        summary = {
-                            Text(
-                                text =  "清理数据",
-                            )
-                        },
-                        modifier =  Modifier.clickable{
+                        summary = "清理数据",
+                        onResetConfirmed = {
                             uiState.eventSink(PersonalSetsUiEvent.ResetApp)
-                        },
+                        }
                     )
                 }
             }

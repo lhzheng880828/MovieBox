@@ -16,14 +16,17 @@ package com.calvin.box.movie.feature.settings
  * limitations under the License.
  */
 
+import androidx.compose.runtime.Immutable
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.calvin.box.movie.AppVersionInfo
 import com.calvin.box.movie.DiceRoller
 import com.calvin.box.movie.DiceSettings
+import com.calvin.box.movie.Theme
 import com.calvin.box.movie.bean.Config
 import com.calvin.box.movie.bean.Doh
 import com.calvin.box.movie.bean.DownloadStatus
+import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.UpdateStatus
 import com.calvin.box.movie.bean.VersionCheckStatus
 import com.calvin.box.movie.di.AppDataContainer
@@ -102,6 +105,8 @@ class SettingsViewModel(
 
                 val about = "mobile" + AppVersionInfo.FLAVOR_ABI + AppVersionInfo.FLAVOR_API
 
+                val sites = appDataContainer.vodRepository.getSites()
+
                 // 更新 _uiState
                 _uiState.value = SettingsUiState(
                     theme = theme,
@@ -118,6 +123,7 @@ class SettingsViewModel(
                     cacheSize = cacheSize,
                     versionName = versionName,
                     versionCode = versionCode,
+                    sites = sites,
                     eventSink = ::eventSink
                 )
             }
@@ -280,6 +286,10 @@ class SettingsViewModel(
                }
 
             }
+
+            is SettingsUiEvent.SetVodHomeSite ->  {
+                vodRepo.setHome(event.site)
+            }
         }
     }
 
@@ -289,4 +299,62 @@ sealed interface DiceRollResult {
     object Initial : DiceRollResult
     class Success(val values: List<Int>) : DiceRollResult
     object Error : DiceRollResult
+}
+@Immutable
+data class SettingsUiState(
+    val theme: Theme = Theme.SYSTEM,
+    val dynamicColorsAvailable: Boolean = false,
+    val useDynamicColors: Boolean = false,
+
+    val vodUrl: String = "",
+    val vodName: String = "站点名称",
+    val vodUrls: List<String> = emptyList(),
+
+    val liveUrl: String = "",
+    val wallPaperUrl: String = "",
+
+    val dohIndex: UInt = 0u,
+    val dohList: List<Doh> = emptyList(),
+
+    val proxy: String = "",
+
+    var cacheSize: String = "0 KB",
+    val versionName: String = "1.0.0",
+    val versionCode: Int = 0,
+    val about: String = "公众号：虎哥LoveOpenSource",
+
+    val  crashDataReportingEnabled: Boolean = false,
+    val analyticsDataReportingEnabled: Boolean = false,
+
+    val showDeveloperSettings: Boolean = false,
+    val openSourceLicenseAvailable: Boolean = false,
+
+    val sites: List<Site> = emptyList(),
+
+    val eventSink: (SettingsUiEvent) -> Unit?,
+)
+
+sealed interface SettingsUiEvent  {
+    data object NavigateUp : SettingsUiEvent
+    data class SetTheme(val theme: Theme) : SettingsUiEvent
+    data object NavigateDeveloperSettings : SettingsUiEvent
+    data object ToggleUseDynamicColors : SettingsUiEvent
+    data class SetVodHomeSite(val site: Site): SettingsUiEvent
+    data class SetVodUrl(val vodUrl: String, val vodName:String): SettingsUiEvent
+    data class SetLiveUrl(val liveUrl: String): SettingsUiEvent
+    data class SetWallPaperUrl(val wallPaperUrl: String): SettingsUiEvent
+    data class SetDoh(val doh: Doh): SettingsUiEvent
+    data class SetProxy(val proxy:String): SettingsUiEvent
+    data object NavigatePrivacyPolicy: SettingsUiEvent
+    data object NavigatePlayerSettings: SettingsUiEvent
+    data object NavigatePersonalizationSettings: SettingsUiEvent
+
+    data object ToggleCrashDataReporting: SettingsUiEvent
+    data object ToggleAnalyticsDataReporting: SettingsUiEvent
+    data object NavigateOpenSource: SettingsUiEvent
+    data object ClearCache: SettingsUiEvent
+
+    data object DownloadApp: SettingsUiEvent
+
+    data class DelVodUrl(val vodUrl: String):SettingsUiEvent
 }

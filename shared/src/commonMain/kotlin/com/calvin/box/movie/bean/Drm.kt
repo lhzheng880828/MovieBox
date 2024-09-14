@@ -12,8 +12,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Drm(
-    @SerialName("key") private val key: String = "",
-    @SerialName("type") private val type: String = ""
+    @SerialName("key")  val key: String = "",
+    @SerialName("type")  val type: String = ""
 ) {
 
 
