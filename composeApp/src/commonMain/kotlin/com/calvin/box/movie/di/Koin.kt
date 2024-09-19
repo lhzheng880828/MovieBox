@@ -18,6 +18,7 @@ import com.calvin.box.movie.ui.screens.tabsview.HomeTabViewModel
 import com.calvin.box.movie.feature.collection.SearchScreenModel
 import com.calvin.box.movie.feature.settings.PlayerSetsModel
 import com.calvin.box.movie.feature.settings.PersonalSetsModel
+import com.calvin.box.movie.feature.detail.VodDetailScreenModel
 
 import com.calvin.box.movie.HomeScreenModel
 
@@ -34,7 +35,7 @@ import org.koin.dsl.module
 import org.koin.dsl.KoinAppDeclaration
 
 import com.calvin.box.movie.getDataFactory
-import com.calvin.box.movie.ui.screens.videoplayerview.VideoPlayerViewModel
+import com.calvin.box.movie.feature.videoplayerview.VideoPlayerViewModel
 
 val dataModule = module {
     single {
@@ -86,6 +87,7 @@ val screenModelsModule = module {
     factoryOf( ::HomeScreenModel )
     factoryOf( ::PlayerSetsModel )
     factoryOf( ::PersonalSetsModel)
+    factoryOf( ::VodDetailScreenModel)
 
 }
 

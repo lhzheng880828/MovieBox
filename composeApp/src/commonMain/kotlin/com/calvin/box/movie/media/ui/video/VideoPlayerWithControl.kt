@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
+import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.media.extension.formattedInterval
 import com.calvin.box.movie.media.model.PlayerConfig
 import com.calvin.box.movie.media.model.PlayerSpeed
@@ -28,11 +29,13 @@ import com.calvin.box.movie.media.ui.video.controls.CenterControlView
 import com.calvin.box.movie.media.ui.video.controls.LockScreenView
 import com.calvin.box.movie.media.ui.video.controls.TopControlView
 import com.calvin.box.movie.media.util.CMPPlayer
+import com.calvin.box.movie.media.util.setPlayMediaInfo
 
 @Composable
 fun VideoPlayerWithControl(
     modifier: Modifier,
     url: String, // URL of the video
+    playMediaInfo: PlayMediaInfo,
     playerConfig: PlayerConfig, // Configuration for the player
     isPause: Boolean, // Flag indicating if the video is paused
     onPauseToggle: (() -> Unit), // Callback for toggling pause/resume
@@ -51,6 +54,7 @@ fun VideoPlayerWithControl(
     var showSpeedSelection by remember { mutableStateOf(false) } // Selected playback speed
     var isScreenLocked by remember { mutableStateOf(false) }
 
+    setPlayMediaInfo(playMediaInfo)
     // Container for the video player and control components
     Box(
         modifier = modifier

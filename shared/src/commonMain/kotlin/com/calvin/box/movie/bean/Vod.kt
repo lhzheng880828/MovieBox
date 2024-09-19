@@ -72,6 +72,9 @@ data class Vod @OptIn(ExperimentalSerializationApi::class) constructor(
     @SerialName("vod_tag")
     var vodTag: String = "",
 
+    @SerialName("action")
+    var action: String = "",
+
     @SerialName("cate")
     var cate: Cate? = null,
 
@@ -89,7 +92,10 @@ data class Vod @OptIn(ExperimentalSerializationApi::class) constructor(
 
     var vodFlags: MutableList<Flag> = mutableListOf(),
 
+    var playMediaInfo: PlayMediaInfo? = null,
+
     var site: Site? = null
+
 ) {
 
     companion object {

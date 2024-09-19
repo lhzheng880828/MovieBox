@@ -120,7 +120,7 @@ object ExoUtil {
         mimeType: String?,
         drm: Drm?,
         subs: List<Sub>,
-        decode: Int
+        //decode: Int
     ): MediaItem {
         val builder = MediaItem.Builder().setUri(uri)
         builder.setRequestMetadata(getRequestMetadata(headers, uri))

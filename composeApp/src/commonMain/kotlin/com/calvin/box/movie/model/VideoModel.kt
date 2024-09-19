@@ -10,5 +10,5 @@ data class VideoModel  (
     var duration: String = "",
     var rating: String = "",
     var date: String = "",
-    var siteKey:String? = ""
+    var siteKey:String = ""
     )

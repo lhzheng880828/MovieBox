@@ -1,21 +1,19 @@
-package com.calvin.box.movie.ui.screens.videoplayerview
+package com.calvin.box.movie.feature.videoplayerview
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.calvin.box.movie.api.config.VodConfig
+import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
 import com.calvin.box.movie.di.AppDataContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 
 /*
  *Author:cl
@@ -107,9 +105,9 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
                     val realUrl = playerResult.getRealUrl()
                     Napier.d { "realUrl: $realUrl" }
                     vodDetail.vodPlayUrl = realUrl
-
-
-                    _uiState.value = UiState.Success(DetailDataCombine(detail = vodDetail, siteList = vodList))
+                    vodDetail.playMediaInfo = PlayMediaInfo(playerResult.getHeaders(),realUrl, playerResult.format, playerResult.drm, playerResult.subs )
+                    _uiState.value =
+                        UiState.Success(DetailDataCombine(detail = vodDetail, siteList = vodList))
                 } else {
                     _uiState.value = UiState.Empty
                 }
@@ -132,8 +130,10 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
                     val playerResult = movieRepo.loadPlayerContent(site, flag, episode.url)
                     Napier.d { "playerResult: $playerResult" }
                     val realUrl = playerResult.getRealUrl()
-                    Napier.d { "realUrl: $realUrl" }
+                    val headers = playerResult.header
+                    Napier.d { "realUrl: $realUrl, headers: $headers" }
                     vodDetail.vodPlayUrl = realUrl
+                    vodDetail.playMediaInfo = PlayMediaInfo(playerResult.getHeaders(),realUrl, playerResult.format, playerResult.drm, playerResult.subs )
                     _uiState.value = UiState.Success(DetailDataCombine(detail = vodDetail))
                 }
 

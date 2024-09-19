@@ -8,16 +8,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.media.model.PlayerConfig
 import com.calvin.box.movie.media.util.LandscapeOrientation
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun VideoPlayerView(
     modifier: Modifier = Modifier, // Modifier for the composable
     url: String, // URL of the video
+    playMediaInfo: PlayMediaInfo = PlayMediaInfo(url = url),
     playerConfig: PlayerConfig = PlayerConfig() // Configuration for the player
 ) {
     var isPause by remember { mutableStateOf(false) } // State for pausing/resuming video
@@ -42,6 +43,7 @@ fun VideoPlayerView(
         VideoPlayerWithControl(
             modifier = if (isFullScreen) { Modifier.fillMaxSize()} else { modifier },
             url = url, // URL of the video
+            playMediaInfo = playMediaInfo,
             playerConfig = playerConfig, // Player configuration
             isPause = isPause, // Flag indicating if the video is paused
             onPauseToggle = { isPause = isPause.not() }, // Toggle pause/resume

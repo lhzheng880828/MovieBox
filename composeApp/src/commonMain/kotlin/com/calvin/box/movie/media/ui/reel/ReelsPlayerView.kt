@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.media.model.PlayerConfig
 import com.calvin.box.movie.media.ui.video.VideoPlayerWithControl
 import kotlinx.coroutines.delay
@@ -63,6 +64,7 @@ fun ReelsPlayerView(
             VideoPlayerWithControl(
                 modifier = modifier,
                 url = urls[page], // URL of the video
+                playMediaInfo = PlayMediaInfo(url = urls[page]),
                 playerConfig = playerConfig,
                 isPause = if (pagerState.currentPage == page) { isPause } else { true }, // Pause video when not in focus
                 onPauseToggle = { isPause = isPause.not() }, // Toggle pause/resume
@@ -82,6 +84,7 @@ fun ReelsPlayerView(
             VideoPlayerWithControl(
                 modifier = modifier,
                 url = urls[page], // URL of the video
+                playMediaInfo = PlayMediaInfo(url = urls[page]),
                 playerConfig = playerConfig,
                 isPause = if (pagerState.currentPage == page) { isPause } else { true }, // Pause video when not in focus
                 onPauseToggle = { isPause = isPause.not() }, // Toggle pause/resume

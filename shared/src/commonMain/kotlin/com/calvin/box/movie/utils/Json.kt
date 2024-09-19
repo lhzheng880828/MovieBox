@@ -68,8 +68,8 @@ object Json {
         }
     }
 
-    fun toMap(json: String?): Map<String, String>? {
-        return json?.let { toMap(parse(it)) }
+    fun toMap(json: String): Map<String, String> {
+        return toMap(parse(json))
     }
 
     fun toMap(element: JsonElement): Map<String, String> {

@@ -234,9 +234,9 @@ data class Result(
         return playUrl + url.v()
     }
 
-    fun getHeaders(): Map<String, String>? {
-        if(header == null) return mutableMapOf()
-        return com.calvin.box.movie.utils.Json.toMap(header)
+    fun getHeaders(): Map<String, String> {
+        if(header.isNullOrEmpty()) return emptyMap()
+        return com.calvin.box.movie.utils.Json.toMap(header!!)
     }
 
     fun getStyle(style: Style): Style {

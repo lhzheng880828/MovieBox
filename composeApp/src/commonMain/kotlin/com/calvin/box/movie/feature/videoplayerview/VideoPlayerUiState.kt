@@ -1,4 +1,4 @@
-package com.calvin.box.movie.ui.screens.videoplayerview
+package com.calvin.box.movie.feature.videoplayerview
 
 import com.calvin.box.movie.bean.Vod
 

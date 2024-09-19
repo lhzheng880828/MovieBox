@@ -26,6 +26,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.calvin.box.movie.player.exo.ExoUtil
+import io.github.aakira.napier.Napier
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
@@ -76,7 +77,14 @@ fun rememberExoPlayerWithLifecycle(
 
     LaunchedEffect(reelUrl) {
         val videoUri = Uri.parse(reelUrl)
-        val mediaItem = MediaItem.fromUri(videoUri)
+        var mediaItem = MediaItem.fromUri(videoUri)
+        val mediaInfo = getPlayMediaInfo()
+        if(mediaInfo!=null){
+            val headerMap = mediaInfo.headers
+            mediaItem = ExoUtil.getMediaItem(headerMap, videoUri, mediaInfo.mimeType, mediaInfo.drm, mediaInfo.subs )
+            Napier.d { "player url: $videoUri, headers: $headerMap" }
+
+        }
         val dataSourceFactory = DefaultDataSource.Factory(context)
         val mediaSource = when {
             reelUrl.endsWith(".m3u8", ignoreCase = true) -> {
@@ -97,6 +105,7 @@ fun rememberExoPlayerWithLifecycle(
         }
         exoPlayer.seekTo(0, 0)
         exoPlayer.setMediaSource(mediaSource)
+        //exoPlayer.setMediaItem(mediaItem, 0)
         exoPlayer.prepare()
     }
 

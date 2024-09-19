@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
+import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.media.model.PlayerSpeed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive

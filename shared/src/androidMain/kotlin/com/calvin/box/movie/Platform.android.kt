@@ -397,39 +397,53 @@ class AndroidSpiderLoader: SpiderLoader {
     }
 
     override suspend fun loadHomeContent(site:Site): Result {
-            if (site.type == 3) {
+        when (site.type) {
+            3 -> {
                 val spider: Spider =  getSpider(site) as Spider
                 Napier.d { "#loadHomeContent, spider: $spider" }
-                val homeContent: String = spider.homeContent(true)
-                //SpiderDebug.log(homeContent)
+                val homeContent: String =
+                    try {
+                        spider.homeContent(true)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        "{}"
+                    }
                 Napier.d { "#loadHomeContent, homeContent:type3 $homeContent" }
                 setRecent(site)
                 val result: Result = Result.fromJson(homeContent)
                 if (result.list.isNotEmpty()) return result
-                val homeVideoContent: String = spider.homeVideoContent()
-                //SpiderDebug.log(homeVideoContent)
+                val homeVideoContent: String =
+                    try {
+                        spider.homeVideoContent()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        "{}"
+                    }
                 Napier.d { "#loadHomeContent, homeVideoContent:type3 $homeVideoContent" }
                 result.list = (Result.fromJson(homeVideoContent).list)
                 return result
-            } else if (site.type== 4) {
+            }
+            4 -> {
                 val params: ArrayMap<String, String> =
                     ArrayMap<String, String>()
                 params["filter"] = "true"
                 val homeContent: String = call(site, params, false)
                 SpiderDebug.log(homeContent)
                 return Result.fromJson(homeContent)
-            } else {
+            }
+            else -> {
                 val homeContent: String =
                     try {
                         HostOkHttp.newCall(site.api, getOKhttpHeaders(site.header)).execute()
                             .body?.string() ?:""
                     } catch (e: Exception) {
-                         e.printStackTrace()
+                        e.printStackTrace()
                         "{}"
                     }
                 SpiderDebug.log(homeContent)
                 return fetchPic(site, Result.fromType(site.type, homeContent))
             }
+        }
 
 
     }

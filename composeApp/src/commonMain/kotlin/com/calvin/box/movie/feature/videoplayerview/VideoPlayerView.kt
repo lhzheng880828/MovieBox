@@ -1,7 +1,8 @@
-package com.calvin.box.movie.ui.screens.videoplayerview
+package com.calvin.box.movie.feature.videoplayerview
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -54,6 +56,10 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.bottomSheet.BottomSheetNavigator
 import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import com.calvin.box.movie.api.config.VodConfig
+import com.calvin.box.movie.bean.Episode
+import com.calvin.box.movie.bean.Flag
+import com.calvin.box.movie.bean.PlayMediaInfo
+import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
 import com.calvin.box.movie.font.FontType
 import com.calvin.box.movie.font.MediaFont
@@ -80,8 +86,8 @@ class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content() {
-        val vodDetailModel:VideoPlayerViewModel = getScreenModel()
-        if(!siteKey.isNullOrEmpty()){
+        val vodDetailModel: VideoPlayerViewModel = getScreenModel()
+        if(siteKey.isNotEmpty()){
             val site =VodConfig.get().getSite(siteKey)
             vodDetailModel.getVodDetail(site, vodId, vodName)
             BottomSheetNavigator {
@@ -93,17 +99,14 @@ class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
 }
 
 @Composable
-private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:VideoPlayerViewModel) {
-
+private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel: VideoPlayerViewModel) {
       val detailUiState by vodDetailModel.uiState.collectAsState()
-   // Napier.d { "detailUiState: $detailUiState" }
     if(detailUiState is UiState.Success){
         val detail = (detailUiState as UiState.Success).data.detail
         val list = (detailUiState as UiState.Success).data.siteList
 
         Napier.d { "detail: $detail, siteList: ${list.size}" }
     }
-
 
     if(detailUiState is UiState.Loading || detailUiState is UiState.Initial){
         Text("loading detail")
@@ -121,6 +124,8 @@ private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:Vide
     val navigator = LocalNavigation.current
     var video by remember { mutableStateOf(currentVideo) }
     val detail = (detailUiState as UiState.Success).data.detail
+    val siteVodList =  (detailUiState as UiState.Success).data.siteList
+    val playInfo = if(detail.playMediaInfo==null) PlayMediaInfo(url = detail.vodPlayUrl) else detail.playMediaInfo
     Column(
         modifier = Modifier
            /* 修改整个界面的背景主题
@@ -141,6 +146,7 @@ private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:Vide
                 modifier = Modifier.fillMaxWidth()
                     .height(164.sdp),
                 url = detail.vodPlayUrl,
+                playMediaInfo = playInfo!!,
                 playerConfig = PlayerConfig(
                     seekBarActiveTrackColor = Color.Red,
                     seekBarInactiveTrackColor = Color.White,
@@ -172,10 +178,10 @@ private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:Vide
                 GridItemSpan(2)
             })
                 {
-                videoDetails(video, detail)
+                videoDetails(video, detail, siteVodList)
             }
 
-            items(MockData().getFilteredData(video)) {
+           /* items(MockData().getFilteredData(video)) {
                 Column(
                     modifier = Modifier.padding(4.sdp)
                 ) {
@@ -212,13 +218,13 @@ private fun VideoPlayerContentView(currentVideo: VideoModel, vodDetailModel:Vide
             })
             {
                 Spacer(modifier = Modifier.height(16.sdp))
-            }
+            }*/
         }
     }
 }
 
 @Composable
-private fun videoDetails(video: VideoModel, vod: Vod) {
+private fun videoDetails(video: VideoModel, vod: Vod,  siteVodList: List<Vod>) {
     Row(
         modifier = Modifier.padding(vertical = 13.sdp),
         verticalAlignment = Alignment.Top,
@@ -229,17 +235,56 @@ private fun videoDetails(video: VideoModel, vod: Vod) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
         ) {
+            val orgFlags = vod.vodFlags.mapIndexed { index, flag ->
+                if(index==0){
+                    flag.copy(activated = true)
+                } else {
+                    flag.copy(activated = false)
+                }
+            }
+            var flags  by  remember { mutableStateOf(orgFlags)   }
+            var episodes by remember { mutableStateOf(flags[0].episodes)  }
             MovieHeader(vod)
             Spacer(modifier = Modifier.height(4.sdp))
-            MovieLines()
-            Spacer(modifier = Modifier.height(4.sdp))
-            MovieEpisodes()
-            Spacer(modifier = Modifier.height(16.dp))
-            MovieDescription()
-            Spacer(modifier = Modifier.height(16.dp))
-            MovieSites()
+            MovieLines(flags, onClick = { clickedFlag->
+                flags = flags.map { currentFlag ->
+                    if (currentFlag.show == clickedFlag.show) {
+                        currentFlag.copy(activated = true) // 选中的 flag
+                    } else {
+                        currentFlag.copy(activated = false) // 未选中的 flag
+                    }
+                }.toMutableList()
 
-            Text(
+                episodes =  clickedFlag.episodes.mapIndexed { index, episode ->
+                    if(index==0){
+                        episode.copy(activated = true)
+                    } else {
+                        episode.copy(activated = false)
+                    }
+                } .toMutableList()
+            })
+            Spacer(modifier = Modifier.height(4.sdp))
+            MovieEpisodes(episodes, onClick = { clickedEpisode->
+
+                episodes = episodes.map { currentEpisodes ->
+                    if (currentEpisodes.name == clickedEpisode.name) {
+                        currentEpisodes.copy(activated = true)
+                    } else {
+                        currentEpisodes.copy(activated = false)
+                    }
+                }.toMutableList()
+            })
+            Spacer(modifier = Modifier.height(16.dp))
+            MovieDescription(vod.getFormatVodContent())
+            Spacer(modifier = Modifier.height(16.dp))
+            if(siteVodList.isNotEmpty()){
+                MovieSites(siteVodList, onClick = {
+
+                })
+            }
+
+
+          /*  Text(
                 text = video.subtitle,
                 style = MediaFont.lexendDeca(
                     size = FontType.Small,
@@ -274,7 +319,7 @@ private fun videoDetails(video: VideoModel, vod: Vod) {
                 modifier = Modifier.padding(horizontal = 4.sdp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
-            )
+            )*/
         }
     }
 }
@@ -369,12 +414,13 @@ private fun downloadItem(
 }
 
 @Composable
-fun MovieLines() {
+fun MovieLines(lines:List<Flag>,
+               onClick: (Flag) -> Unit) {
     val bottomSheetNavigator = LocalBottomSheetNavigator.current
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.material.Text("线路", style = MaterialTheme.typography.h6)
+         Text("线路", style = MaterialTheme.typography.h6)
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
@@ -384,23 +430,31 @@ fun MovieLines() {
             },
             modifier = Modifier.padding(start = 8.dp)
         ) {
-            androidx.compose.material.Text("下载", style = MaterialTheme.typography.button)
+             Text("下载", style = MaterialTheme.typography.button)
             //Icon(painterResource(id = R.drawable.ic_arrow_right), contentDescription = null)
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
     LazyRow {
-        items(listOf("天天线路1", "天天线路2", "天天线路3", "优酷线路")) { line ->
-            Button(onClick = { /* TODO */ }) {
-                androidx.compose.material.Text(line)
-            }
+        items(lines) { line ->
+            Text(
+                text = line.show,
+                modifier = Modifier
+                    .background(
+                        color = if (line.activated) Color.Blue else Color.Gray,
+                        shape = MaterialTheme.shapes.small
+                    ) .clickable { onClick(line) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
             Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
 
 @Composable
-fun MovieEpisodes() {
+fun MovieEpisodes(
+    episodes: List<Episode>,
+    onClick: (Episode) -> Unit) {
     val bottomSheetNavigator = LocalBottomSheetNavigator.current
     Row(
         verticalAlignment = Alignment.CenterVertically
@@ -408,35 +462,44 @@ fun MovieEpisodes() {
         androidx.compose.material.Text("选集", style = MaterialTheme.typography.h6)
         Spacer(modifier = Modifier.weight(1f))
         Button(
-            onClick = { bottomSheetNavigator.show(EpisodesBottomSheet())  },
+            onClick = { bottomSheetNavigator.show(EpisodesBottomSheet(episodes, onClick = {
+
+            })) },
             modifier = Modifier.padding(start = 8.dp)
         ) {
-            androidx.compose.material.Text("更多", style = MaterialTheme.typography.button)
+            Text("更多", style = MaterialTheme.typography.button)
             //Icon(painterResource(id = R.drawable.ic_arrow_right), contentDescription = null)
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
     LazyRow {
-        items((1..10).toList()) { episode ->
-            Button(onClick = { /* TODO */ }) {
-                androidx.compose.material.Text("第${episode}集")
-            }
+        items(episodes) { episode ->
+            Text(
+                text = episode.name,
+                modifier = Modifier
+                    .background(
+                        color = if (episode.activated) Color.Blue else Color.Gray,
+                        shape = MaterialTheme.shapes.small
+                    )
+                    .clickable { onClick(episode) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
             Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }
 
 @Composable
-fun MovieDescription() {
+fun MovieDescription(desc:String) {
     var expanded by remember { mutableStateOf(false) }
     val description = if (expanded) {
-        "这是一个详细的剧集简介，包含了许多细节和故事情节。"
+        desc
     } else {
-        "这是一个简单的剧集简介。"
+        desc.subSequence(0,20).toString()
     }
 
     Column {
-        androidx.compose.material.Text(description, maxLines = if (expanded) Int.MAX_VALUE else 3)
+        Text(description, maxLines = if (expanded) Int.MAX_VALUE else 3)
         TextButton(onClick = { expanded = !expanded }) {
             Text(if (expanded) "收起" else "展开")
         }
@@ -444,26 +507,27 @@ fun MovieDescription() {
 }
 
 @Composable
-fun MovieSites() {
+fun MovieSites(siteVodList: List<Vod>,
+               onClick: (Vod) -> Unit,
+               ) {
     Column {
         androidx.compose.material.Text("站点列表", style = MaterialTheme.typography.h6)
         Spacer(modifier = Modifier.height(8.dp))
-        val sites = listOf("站点1", "站点2", "站点3", "站点4","站点4","站点4","站点4","站点4","站点4","站点4","站点4","站点4","站点4","站点4","站点4")
-        sites.chunked(2).forEach { rowSites ->
+        siteVodList.chunked(2).forEach { rowSites ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                rowSites.forEach { site ->
+                rowSites.forEach { siteVod ->
                     Button(
-                        onClick = { /* TODO */ },
+                        onClick = { onClick(siteVod)},
                         modifier = Modifier
                             .weight(1f)
-                            .padding(end = if (site == rowSites.last()) 0.dp else 4.dp)
+                            .padding(end = if (siteVod == rowSites.last()) 0.dp else 4.dp)
                     ) {
-                        Text(site)
+                        Text(siteVod.getSiteName())
                     }
                 }
                 // 如果这一行只有一个按钮，添加一个空的权重来保持对齐
@@ -501,7 +565,7 @@ class DownloadBottomSheet:Screen {
 
 }
 
-class EpisodesBottomSheet:Screen {
+class EpisodesBottomSheet(private val episodes: List<Episode>, val onClick: (Episode) -> Unit):Screen {
     @Composable
     override fun Content() {
         val bottomSheetNavigator = LocalBottomSheetNavigator.current
@@ -513,9 +577,9 @@ class EpisodesBottomSheet:Screen {
             androidx.compose.material.Text("选集列表", style = MaterialTheme.typography.h6)
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn {
-                items((1..6).toList()) { episode ->
-                    Button(onClick = { /* TODO */ }) {
-                        androidx.compose.material.Text("第${episode}集")
+                items(episodes) { episode ->
+                    Button(onClick = { onClick(episode) }) {
+                        androidx.compose.material.Text(episode.name)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }

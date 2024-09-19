@@ -63,11 +63,34 @@ data class VodListScreen(val category: Class, val viewModel: HomeTabViewModel) :
                 ObjectGrid(
                     objects = objects,
                     onObjectClick = { vodObj ->
-                        Napier.d { "vod item clicked" }
+
                         val homeSiteKey = VodConfig.get().getHome()?.key
-                        val videoModel = VideoModel(id = vodObj.vodId.toString(), description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
-                            subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName, siteKey = homeSiteKey)
+                        val isIndexs =  VodConfig.get().getHome()?.isIndexs()
+                        val isFolder = vodObj.isFolder()
+                        val isManga = vodObj.isManga()
+                        val action = vodObj.action
+                        Napier.d { "vod item clicked, homeSiteKey:$homeSiteKey, isIndexs: $isIndexs," +
+                                " isFolder: $isFolder, isManga:$isManga, action: $action" }
+
+                        val videoModel = VideoModel(id = vodObj.vodId, description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
+                            subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName, siteKey = homeSiteKey!!)
                         navigator.goToVideoPlayerScreen(videoModel)
+
+                        if(action.isNotEmpty()){
+
+                        } else if(isFolder){
+
+                        } else {
+                            if(isIndexs == true){
+
+                            } else if(isManga){
+                                navigator.goToDetailScreen(videoModel)
+                            } else {
+                                navigator.goToVideoPlayerScreen(videoModel)
+                            }
+
+                        }
+
                     }
                 )
             } else {
