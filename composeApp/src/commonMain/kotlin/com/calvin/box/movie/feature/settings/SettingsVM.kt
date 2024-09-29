@@ -92,9 +92,11 @@ class SettingsViewModel(
 
                 val dohList = vodRepo.getDoh()
                 val dohIndex = max(
-                    0u,
-                    dohList.indexOf(Doh.objectFrom(preferences.doh.get())).toUInt()
+                    0,
+                    dohList.indexOf(Doh.objectFrom(preferences.doh.get()))
                 )
+
+
 
                 val proxy = preferences.proxy.get()
                 val volume = preferences.volume.get()
@@ -313,7 +315,7 @@ data class SettingsUiState(
     val liveUrl: String = "",
     val wallPaperUrl: String = "",
 
-    val dohIndex: UInt = 0u,
+    val dohIndex: Int = 0,
     val dohList: List<Doh> = emptyList(),
 
     val proxy: String = "",

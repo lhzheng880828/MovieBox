@@ -1,5 +1,6 @@
 package com.calvin.box.movie.feature.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,7 +58,6 @@ fun VodSitesDialog(
             sites.filter { it.name.contains(keyword, ignoreCase = true) }
         }
     }
-
     // Dialog 构建
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -77,24 +78,34 @@ fun VodSitesDialog(
                     items(filteredSites) { site ->
                         SiteListItem(
                             site = site,
+                            activated = site.activated,
                             onTextClick = {
                                 siteCallback.setSite(site)
                                 onSiteSelected(site.name)
                                 // 关闭对话框
+                                // 更新列表中选中的站点
+                                filteredSites = filteredSites.map {
+                                    if (it.key == site.key) {
+                                        it.copy(activated = true) // 选中的 site
+                                    } else {
+                                        it.copy(activated = false) // 未选中的 site
+                                    }
+                                }
+                                onDismiss()
                             },
-                            onSearchClick = { position, site ->
-                                site.setSearchable(!site.isSearchable())
-                                runBlocking { site.save() }
+                            onSearchClick = { _, it ->
+                                site.setSearchable(!it.isSearchable())
+                                runBlocking { it.save() }
                                 searchSite()
                                 siteCallback.onChanged()
                             },
-                            onChangeClick = { position, site ->
-                                site.setChangeable(!site.isChangeable())
-                                runBlocking { site.save() }
+                            onChangeClick = { _, it ->
+                                site.setChangeable(!it.isChangeable())
+                                runBlocking { it.save() }
                                 searchSite()
                             },
-                            onSearchLongClick = { site ->
-                                val result = !site.isSearchable()
+                            onSearchLongClick = { it ->
+                                val result = !it.isSearchable()
                                 sites.forEach {
                                     it.setSearchable(result)
                                     runBlocking { it.save() }
@@ -103,8 +114,8 @@ fun VodSitesDialog(
                                 siteCallback.onChanged()
                                 true
                             },
-                            onChangeLongClick = { site ->
-                                val result = !site.isChangeable()
+                            onChangeLongClick = { it ->
+                                val result = !it.isChangeable()
                                 sites.forEach {
                                     it.setChangeable(result)
                                     runBlocking {  it.save()}
@@ -157,6 +168,7 @@ fun SearchBar(
 @Composable
 fun SiteListItem(
     site: Site,
+    activated: Boolean,
     onTextClick: () -> Unit,
     onSearchClick: (Int, Site) -> Unit,
     onChangeClick: (Int, Site) -> Unit,
@@ -167,7 +179,10 @@ fun SiteListItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { onTextClick() },
+            .clickable {
+                onTextClick()
+            }
+            .background(color = if(activated) Color.Blue else Color.White),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

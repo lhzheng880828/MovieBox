@@ -83,16 +83,18 @@ fun rememberExoPlayerWithLifecycle(
             val headerMap = mediaInfo.headers
             mediaItem = ExoUtil.getMediaItem(headerMap, videoUri, mediaInfo.mimeType, mediaInfo.drm, mediaInfo.subs )
             Napier.d { "player url: $videoUri, headers: $headerMap" }
-
+        } else {
+            Napier.d { "player url: $videoUri, mediaInfo is null" }
         }
-        val dataSourceFactory = DefaultDataSource.Factory(context)
+        /*val dataSourceFactory = DefaultDataSource.Factory(context)
         val mediaSource = when {
             reelUrl.endsWith(".m3u8", ignoreCase = true) -> {
                 // HLS media source
                 HlsMediaSource.Factory(DefaultHttpDataSource.Factory())
                     .createMediaSource(mediaItem)
             }
-            reelUrl.endsWith(".mpd", ignoreCase = true) -> {
+            reelUrl.endsWith(".mpd", ignoreCase = true) ||
+                    reelUrl.endsWith("type=mpd", ignoreCase = true) -> {
                 // DASH media source
                 DashMediaSource.Factory(DefaultHttpDataSource.Factory())
                     .createMediaSource(mediaItem)
@@ -102,11 +104,12 @@ fun rememberExoPlayerWithLifecycle(
                 ProgressiveMediaSource.Factory(dataSourceFactory)
                     .createMediaSource(mediaItem)
             }
-        }
+        }*/
         exoPlayer.seekTo(0, 0)
-        exoPlayer.setMediaSource(mediaSource)
-        //exoPlayer.setMediaItem(mediaItem, 0)
+        //exoPlayer.setMediaSource(mediaSource)
+        exoPlayer.setMediaItem(mediaItem, 0)
         exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
     }
 
     var appInBackground by remember {

@@ -12,7 +12,8 @@ sealed class UiState {
     object Loading : UiState()
     object Empty : UiState()
     data class Success(val data: DetailDataCombine) : UiState()
+    data class UPDATE(val data: DetailDataCombine) : UiState()
     data class Error(val message: String) : UiState()
 }
 
-data class DetailDataCombine(val detail: Vod, val siteList:List<Vod> = emptyList())
+data class DetailDataCombine(var detail: Vod, var siteList:List<Vod> = emptyList())

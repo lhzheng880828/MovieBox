@@ -224,13 +224,13 @@ class SettingsScreen:Screen {
                     SingleChoicePreference(
                         selectedKey = dohIndex.toString(),
                         onSelectionChanged = {
-                            dohIndex = it.toUInt()
-                            viewModel.eventSink(SettingsUiEvent.SetDoh(dohList[dohIndex.toInt()]))
+                            dohIndex = it.toInt()
+                            viewModel.eventSink(SettingsUiEvent.SetDoh(dohList[dohIndex]))
 
                         },
                         title = "Doh",
                         entries = dohMap,
-                        summary = dohList[dohIndex.toInt()].name
+                        summary = dohList[dohIndex].name
                     )
                 }
                 item { PreferenceDivider() }

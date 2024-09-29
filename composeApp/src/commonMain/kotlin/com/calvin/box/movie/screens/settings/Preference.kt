@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -52,7 +52,7 @@ fun TextInputPreference(preference: Preference) {
 @Composable
 fun PreferenceCategoryComponent(category: PreferenceCategory) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(category.name, style = MaterialTheme.typography.h6)
+        Text(category.name, style = MaterialTheme.typography.headlineMedium)
         Card(/*expanded = false*/) {
             Column {
                 category.children.forEach { preference ->

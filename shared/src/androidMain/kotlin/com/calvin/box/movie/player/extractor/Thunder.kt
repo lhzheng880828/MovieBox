@@ -114,10 +114,10 @@ class Thunder : Extractor {
             }
 
             private fun isTorrent(url: String): Boolean {
-                return !url.startsWith("magnet") && url.split(";".toRegex())
-                    .dropLastWhile { it.isEmpty() }
-                    .toTypedArray()[0].endsWith(".torrent")
+                val parts = url.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                return parts.isNotEmpty() && !url.startsWith("magnet") && parts[0].endsWith(".torrent")
             }
+
         }
     }
 }

@@ -83,7 +83,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material)
+            //implementation(compose.material)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
 
@@ -112,6 +112,9 @@ kotlin {
             implementation(libs.chaintech.sdp.compose.multiplatform)
             implementation(libs.paging.common)
             implementation(libs.paging.compose.common)
+
+            implementation(libs.qr.kit)
+            implementation(libs.navigation.compose)
 
         }
         desktopMain.dependencies {

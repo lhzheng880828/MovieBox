@@ -206,7 +206,7 @@ class VodConfig {
 
     private fun initOther(`object`: JsonObject) {
         if (parses.size > 0) parses.add(0, Parse.god())
-        if (home == null) setHome(if (sites.isEmpty()) Site() else sites.find { it.key == "索尼"/*"csp_Wogg"*/ }!! )
+        if (home == null) setHome(if (sites.isEmpty()) Site() else sites.first() )
         if (parse == null) setParse(if (parses.isEmpty()) Parse() else parses[0])
         setRules(Rule.arrayFrom(`object`["rules"]).toMutableList())
         setDoh(Doh.arrayFrom(`object`["doh"]).toMutableList())

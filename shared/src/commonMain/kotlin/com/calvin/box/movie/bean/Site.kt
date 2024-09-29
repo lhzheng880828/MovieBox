@@ -144,7 +144,7 @@ data class Site(
     }
 
     fun setActivated(item: Site) {
-        activated = this == item
+        activated = this.key == item.key
     }
 
 

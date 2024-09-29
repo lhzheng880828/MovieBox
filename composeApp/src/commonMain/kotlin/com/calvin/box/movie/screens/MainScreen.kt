@@ -1,7 +1,7 @@
 package com.calvin.box.movie.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
@@ -122,35 +122,36 @@ class MeScreen:Screen {
 // Bottom navigation bar composable
 @Composable
 fun BottomNavigationBar(navController: Navigator) {
-    BottomNavigation(
-        backgroundColor = Color.White,
-        elevation = 4.dp
+    NavigationBar(
+        containerColor = Color.White,
+        tonalElevation = 4.dp
     ) {
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = { Icon(Icons.Outlined.Home, contentDescription = "Home") },
+            label = { Text("Home") },
             selected = selectedScreen == BottomNavigationScreens.Home,
-            onClick = { navController.replace(HomeScreen()) },
-            label = { Text("Home") }
+            onClick = { navController.replace(HomeScreen()) }
         )
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = { Icon(Icons.Outlined.Favorite, contentDescription = "Live") },
+            label = { Text("Live") },
             selected = selectedScreen == BottomNavigationScreens.Live,
-            onClick = { navController.replace(LiveScreen()) },
-            label = { Text("Live") }
+            onClick = { navController.replace(LiveScreen()) }
         )
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = { Icon(Icons.Outlined.Favorite, contentDescription = "History") },
+            label = { Text("History") },
             selected = selectedScreen == BottomNavigationScreens.History,
-            onClick = { navController.replace(HistoryScreen()) },
-            label = { Text("History") }
+            onClick = { navController.replace(HistoryScreen()) }
         )
-        BottomNavigationItem(
+        NavigationBarItem(
             icon = { Icon(Icons.Outlined.Person, contentDescription = "Me") },
+            label = { Text("Me") },
             selected = selectedScreen == BottomNavigationScreens.Me,
-            onClick = { navController.replace(MeScreen()) },
-            label = { Text("Me") }
+            onClick = { navController.replace(MeScreen()) }
         )
     }
+
 }
 
 // Define routes for each screen

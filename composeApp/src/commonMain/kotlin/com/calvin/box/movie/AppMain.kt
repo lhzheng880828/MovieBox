@@ -11,22 +11,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+//import androidx.compose.material3.rememberScaffoldState
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -110,10 +109,10 @@ class HomeScreen : Screen {
             modifier = Modifier
                 ///.background(color = MyApplicationTheme.colors.bottomTabBarColor)
                 .padding(bottom = getSafeAreaSize().bottom.dp),
-            scaffoldState = rememberScaffoldState(),
+            //scaffoldState = rememberScaffoldState(),
             //backgroundColor = MyApplicationTheme.colors.bottomTabBarColor,
             bottomBar = {
-                BottomNavigation(
+                NavigationBar(
                     modifier = Modifier
                         .height(BottomNavigationBarHeight),
                     //contentColor = MyApplicationTheme.colors.bottomTabBarColor,
@@ -148,6 +147,7 @@ class HomeScreen : Screen {
 // SPDX-License-Identifier: Apache-2.0
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RootScreenAppBar(
     title: String,
@@ -278,7 +278,7 @@ fun SearchBar( viewModel: HomeScreenModel, modifier: Modifier = Modifier) {
 private fun RowScope.TabNavigationItem(tab: Tab) {
     val tabNavigator = LocalTabNavigator.current
     val title = tab.options.title
-    BottomNavigationItem(
+    NavigationBarItem(
         /*modifier = Modifier
             .background(MyApplicationTheme.colors.bottomTabBarColor),*/
         alwaysShowLabel = true,

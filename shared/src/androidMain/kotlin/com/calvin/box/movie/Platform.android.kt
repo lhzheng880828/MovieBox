@@ -226,6 +226,7 @@ actual fun getPlatform(): Platform  {
     if(androidPlatform==null){
         androidPlatform = AndroidPlatform()
     }
+    Init.set(appContext)
     return androidPlatform!!
 }
 
@@ -539,12 +540,11 @@ class AndroidSpiderLoader: SpiderLoader {
                     "{}"
                 }
 
-            SpiderDebug.log("#loadPlayerContent: type3 $playerContent")
              setRecent(site)
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = vodFlag
             val fetchedUrl = Source.fetch(result)
-            SpiderDebug.log("#loadPlayerContent: fetchedUrl: $fetchedUrl")
+            Napier.d("#loadPlayerContent: siteType3, $playerContent， fetchedUrl: $fetchedUrl")
             result.setUrl(fetchedUrl)
             if(result.header.isNullOrEmpty()) result.header = site.header.toString()
             result.key = key
@@ -554,7 +554,7 @@ class AndroidSpiderLoader: SpiderLoader {
             params["play"] = id
             params["flag"] = flag
             val playerContent = call(site, params, true)
-            SpiderDebug.log("#loadPlayerContent: type4 $playerContent")
+            Napier.d("#loadPlayerContent: siteType4, $playerContent")
             val result = Result.fromJson(playerContent)
             if (result.flag.isEmpty()) result.flag = (flag)
             result.setUrl(Source.fetch(result))

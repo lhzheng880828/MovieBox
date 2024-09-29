@@ -17,10 +17,11 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 @Composable
 fun VideoPlayerView(
     modifier: Modifier = Modifier, // Modifier for the composable
-    url: String, // URL of the video
-    playMediaInfo: PlayMediaInfo = PlayMediaInfo(url = url),
+    url1: String, // URL of the video
+    playMediaInfo: PlayMediaInfo = PlayMediaInfo(url = url1),
     playerConfig: PlayerConfig = PlayerConfig() // Configuration for the player
 ) {
+    val url  by remember { mutableStateOf(url1) }
     var isPause by remember { mutableStateOf(false) } // State for pausing/resuming video
     var showControls by remember { mutableStateOf(true) } // State for showing/hiding controls
     var isSeekbarSliding = false // Flag for indicating if the seek bar is being slid

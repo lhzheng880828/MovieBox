@@ -11,12 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
@@ -68,7 +63,7 @@ data class DetailScreen(val objectId: Int) : Screen {
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ObjectDetails(
     obj: MuseumObject,
@@ -77,11 +72,15 @@ private fun ObjectDetails(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(backgroundColor = Color.White) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.back))
+            TopAppBar(
+                title = { Text("标题") }, // 可以设置标题
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+                    }
                 }
-            }
+            )
         },
         modifier = modifier,
     ) { paddingValues ->
@@ -101,7 +100,7 @@ private fun ObjectDetails(
 
             SelectionContainer {
                 Column(Modifier.padding(12.dp)) {
-                    Text(obj.title, style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold))
+                    Text(obj.title, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold))
                     Spacer(Modifier.height(6.dp))
                     LabeledInfo(stringResource(Res.string.label_title), obj.title)
                     LabeledInfo(stringResource(Res.string.label_artist), obj.artistDisplayName)

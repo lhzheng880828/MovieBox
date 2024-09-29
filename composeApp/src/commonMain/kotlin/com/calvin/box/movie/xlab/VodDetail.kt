@@ -16,7 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +31,6 @@ import cafe.adriel.voyager.navigator.bottomSheet.LocalBottomSheetNavigator
 import com.calvin.box.movie.bean.Site
 import io.github.aakira.napier.Napier
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MovieDetailScreen() {
     MaterialTheme {
@@ -103,13 +102,13 @@ fun MovieHeader() {
             )*/
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text("异人之下", style = MaterialTheme.typography.h4)
-        Text("全27集", style = MaterialTheme.typography.subtitle1)
-        Text("站源: 萌米 | App", style = MaterialTheme.typography.subtitle2)
+        Text("异人之下", style = MaterialTheme.typography.titleLarge)
+        Text("全27集", style = MaterialTheme.typography.titleMedium)
+        Text("站源: 萌米 | App", style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(8.dp))
-        Text("年份: 2023 地区: 中国 类型: 奇幻, 剧情", style = MaterialTheme.typography.body2)
-        Text("导演: 许宏宇", style = MaterialTheme.typography.body2)
-        Text("演员: 彭昱畅, 侯明昊, 王影璇, 王学圻, 毕雯珺, 姜珮瑶, 王鹤棣", style = MaterialTheme.typography.body2)
+        Text("年份: 2023 地区: 中国 类型: 奇幻, 剧情", style = MaterialTheme.typography.bodySmall)
+        Text("导演: 许宏宇", style = MaterialTheme.typography.bodySmall)
+        Text("演员: 彭昱畅, 侯明昊, 王影璇, 王学圻, 毕雯珺, 姜珮瑶, 王鹤棣", style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -119,7 +118,7 @@ fun MovieLines() {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("线路", style = MaterialTheme.typography.h6)
+        Text("线路", style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
@@ -129,7 +128,9 @@ fun MovieLines() {
                       },
             modifier = Modifier.padding(start = 8.dp)
         ) {
-            Text("下载", style = MaterialTheme.typography.button)
+            TextButton(onClick = { /* 点击事件处理 */ }) {
+                Text("下载", style = MaterialTheme.typography.labelLarge)
+            }
             //Icon(painterResource(id = R.drawable.ic_arrow_right), contentDescription = null)
         }
     }
@@ -150,13 +151,15 @@ fun MovieEpisodes() {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("选集", style = MaterialTheme.typography.h6)
+        Text("选集", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = { bottomSheetNavigator.show(EpisodesBottomSheet())  },
             modifier = Modifier.padding(start = 8.dp)
         ) {
-            Text("更多", style = MaterialTheme.typography.button)
+            TextButton(onClick = { /* 点击事件处理 */ }) {
+                Text("更多", style = MaterialTheme.typography.labelLarge)
+            }
             //Icon(painterResource(id = R.drawable.ic_arrow_right), contentDescription = null)
         }
     }
@@ -191,7 +194,7 @@ fun MovieDescription() {
 @Composable
 fun MovieSites() {
     Column {
-        Text("站点列表", style = MaterialTheme.typography.h6)
+        Text("站点列表", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(8.dp))
         val sites = listOf("站点1", "站点2", "站点3", "站点4")
         LazyVerticalGrid(
@@ -223,7 +226,7 @@ class DownloadBottomSheet:Screen {
             Button(onClick = { bottomSheetNavigator.hide() }) {
                 Text("返回")
             }
-            Text("下载列表", style = MaterialTheme.typography.h6)
+            Text("下载列表", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn {
                 items((1..6).toList()) { episode ->
@@ -248,7 +251,7 @@ class EpisodesBottomSheet:Screen {
             Button(onClick = { bottomSheetNavigator.hide() }) {
                 Text("返回")
             }
-            Text("选集列表", style = MaterialTheme.typography.h6)
+            Text("选集列表", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn {
                 items((1..6).toList()) { episode ->

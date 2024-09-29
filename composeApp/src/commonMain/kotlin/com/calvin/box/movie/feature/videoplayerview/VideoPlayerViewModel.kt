@@ -10,10 +10,12 @@ import com.calvin.box.movie.di.AppDataContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /*
  *Author:cl
@@ -92,15 +94,10 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
                     val vodDetail = result.list.first()
                     vodDetail.site = vodOne.site
                     val flags = vodDetail.vodFlags
-
-                    val flag = flags.get(0).flag
-
-                    val episode = flags.get(0).episodes.get(0)
-
+                    val flag = flags[0].flag
+                    val episode = flags[0].episodes[0]
                     Napier.d { "vodSite: ${vodDetail.site}, flag: $flag, episode: $episode" }
-
                    val playerResult = movieRepo.loadPlayerContent(vodDetail.site!!, flag, episode.url)
-
                     Napier.d { "playerResult: $playerResult" }
                     val realUrl = playerResult.getRealUrl()
                     Napier.d { "realUrl: $realUrl" }
@@ -118,14 +115,10 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
                     _uiState.value = UiState.Error("No vod list loaded")
                 } else {
                     val vodDetail = result.list.first()
-
                     vodDetail.site = site
                     val flags = vodDetail.vodFlags
-
                     val flag = flags[0].flag
-
                     val episode = flags[0].episodes[0]
-
                     Napier.d { "vodSite: ${vodDetail.site}, flag: $flag, episode: $episode" }
                     val playerResult = movieRepo.loadPlayerContent(site, flag, episode.url)
                     Napier.d { "playerResult: $playerResult" }
@@ -139,6 +132,31 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
 
             }
 
+        }
+    }
+
+    fun getVodPlayerContent(site :Site, line:String, url:String) {
+        //Napier.d { "#getVodDetail, site: ${site.key}, line:$line ,url: $url" }
+        screenModelScope.launch(Dispatchers.IO) {
+          val playerResult =  movieRepo.loadPlayerContent(site, line, url)
+
+           val curState = _uiState.value
+            if(curState is UiState.Success){
+                val vodSiteList = curState.data.siteList
+                val vodDetail = curState.data.detail
+                val realUrl = playerResult.getRealUrl()
+                val headers = playerResult.header
+                vodDetail.vodPlayUrl = realUrl
+                vodDetail.playMediaInfo = PlayMediaInfo(playerResult.getHeaders(),realUrl, playerResult.format, playerResult.drm, playerResult.subs )
+                Napier.d { "#getVodPlayerContent, realUrl: $realUrl, headers: $headers" }
+                val updatedData = curState.data.copy(detail = vodDetail, siteList = vodSiteList)
+                _uiState.value = UiState.Loading
+                delay(200)
+                //Napier.i { "#getVodPlayerContent,  delay and setData" }
+                _uiState.value = UiState.Success(updatedData)
+            } else {
+                Napier.d { "err state when update vod detail" }
+            }
         }
     }
 

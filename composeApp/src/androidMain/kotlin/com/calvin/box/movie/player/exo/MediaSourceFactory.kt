@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
@@ -13,6 +14,8 @@ import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.ConcatenatingMediaSource2
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.dash.DashMediaSource
+import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -26,33 +29,7 @@ import okhttp3.OkHttpClient
 @UnstableApi
 class MediaSourceFactory @OptIn(markerClass = [UnstableApi::class]) constructor() :
     MediaSource.Factory {
-   /* private val defaultMediaSourceFactory: DefaultMediaSourceFactory
-    private var httpDataSourceFactory: HttpDataSource.Factory? = null
-        get() {
-            if (field == null) field = DefaultDataSource.Factory(OkHttp.client())
-            return field
-        }
-    private var dataSourceFactory: DataSource.Factory? = null
-        get() {
-            if (field == null) field = buildReadOnlyCacheDataSource(
-                DefaultDataSource.Factory(
-                    (ContextProvider.context as Context),
-                    httpDataSourceFactory!!
-                )
-            )
-            return field
-        }
-    private var extractorsFactory: ExtractorsFactory? = null
-        get() {
-            if (field == null) field =
-                DefaultExtractorsFactory().setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS)
-                    .setTsExtractorTimestampSearchBytes(TsExtractor.DEFAULT_TIMESTAMP_SEARCH_BYTES * 3)
-            return field
-        }
 
-    init {
-        defaultMediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory, extractorsFactory)
-    }*/
    private val defaultMediaSourceFactory: DefaultMediaSourceFactory by lazy {
        DefaultMediaSourceFactory(dataSourceFactory, extractorsFactory)
    }
@@ -93,11 +70,23 @@ class MediaSourceFactory @OptIn(markerClass = [UnstableApi::class]) constructor(
 
 
     override fun createMediaSource(mediaItem: MediaItem): MediaSource {
-        return if (mediaItem.mediaId.contains("***") && mediaItem.mediaId.contains("|||")) {
-            createConcatenatingMediaSource(setHeader(mediaItem))
-        } else {
-            defaultMediaSourceFactory.createMediaSource(setHeader(mediaItem))
+        val mimetype = mediaItem.localConfiguration?.mimeType
+        val mediaId  = mediaItem.mediaId
+        return when {
+            (mediaItem.localConfiguration?.uri.toString().endsWith(".m3u8") ||
+                   MimeTypes.APPLICATION_M3U8 == mimetype) -> {
+                HlsMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            }
+            (mediaItem.localConfiguration?.uri.toString().endsWith(".mpd") ||
+                    MimeTypes.APPLICATION_MPD == mimetype)  -> {
+                DashMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
+            }
+            (mediaId.contains("***") && mediaId.contains("|||")) ->{
+                createConcatenatingMediaSource(setHeader(mediaItem))
+            }
+            else -> defaultMediaSourceFactory.createMediaSource(setHeader(mediaItem))
         }
+
     }
 
     private fun setHeader(mediaItem: MediaItem): MediaItem {

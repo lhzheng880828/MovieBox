@@ -18,7 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Language
@@ -85,12 +85,6 @@ fun SearchBar(onViewToggle: () -> Unit) {
             modifier = Modifier.weight(1f),
             placeholder = { Text("搜索关键词") },
             singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = Color.Blue,
-                placeholderColor = Color.Blue,
-                cursorColor = Color.Blue,
-                backgroundColor = Color.Transparent
-            )
         )
 
         IconButton(onClick = { /* TODO */ }) {
@@ -109,7 +103,6 @@ fun SearchBar(onViewToggle: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AgentContent() {
     LazyColumn(
@@ -131,11 +124,10 @@ fun AgentContent() {
             ) {
                 items(mockSearchRecords) { record ->
                     Chip(
+                        text = record.text,
                         onClick = { /* TODO */ },
-                       // colors = ChipDefaults.chipColors(backgroundColor = Color.DarkGray)
-                    ) {
-                        Text(record.text )
-                    }
+
+                    )
                 }
             }
         }
@@ -172,7 +164,7 @@ fun AgentContent() {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchRecordSection(records: List<SearchRecord>) {
     Text(
@@ -189,9 +181,9 @@ fun SearchRecordSection(records: List<SearchRecord>) {
             Chip(
                 onClick = { /* TODO */ },
                 //colors = ChipDefaults.chipColors(backgroundColor = Color.DarkGray)
-            ) {
-                Text(record.text )
-            }
+                text = record.text
+            )
+
         }
     }
 }
@@ -331,7 +323,7 @@ class SearchScreen(private val keyword: String = "异形：夺命舰"):Screen {
 
 
             if (state !is SearchState.Site2VodCollection) {
-                Text("历史", style = MaterialTheme.typography.h3)
+                Text("历史", style = MaterialTheme.typography.headlineMedium)
                 FlowRow(data = viewModel.searchHistory,
                     onItemClick = { item ->
                         hideKeyboard(focusManager)
@@ -342,7 +334,7 @@ class SearchScreen(private val keyword: String = "异形：夺命舰"):Screen {
                         viewModel.removeSearchKeyword(item)
                     })
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("热搜", style = MaterialTheme.typography.h3)
+                Text("热搜", style = MaterialTheme.typography.headlineMedium)
                 FlowRow(data = hotSearch,
                     onItemClick = { item ->
                         hideKeyboard(focusManager)
@@ -488,8 +480,8 @@ fun SiteItem(
     ) {
         Text(
             text = site.site,
-            color = if (isSelected) MaterialTheme.colors.primary else Color.Black,
-            style = MaterialTheme.typography.body1
+            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black,
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }

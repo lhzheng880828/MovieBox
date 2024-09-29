@@ -28,7 +28,7 @@ fun AutoSizedCircularProgressIndicator(
 
         // We use Material2's CircularProgressIndicator due to
         // https://github.com/JetBrains/compose-multiplatform/issues/4157
-        androidx.compose.material.CircularProgressIndicator(
+        androidx.compose.material3.CircularProgressIndicator(
             strokeWidth = (diameter.value * StrokeDiameterFraction)
                 .roundToInt().dp
                 .coerceAtLeast(2.dp),

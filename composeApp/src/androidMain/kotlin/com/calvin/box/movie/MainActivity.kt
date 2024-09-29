@@ -22,6 +22,7 @@ import com.calvin.box.movie.screens.fruitties.FruittieItem
 import com.calvin.box.movie.utils.FileUtil
 import com.calvin.box.movie.utils.ResUtil
 import com.calvin.box.movie.xlab.BottomSheetExample
+import com.calvin.box.movie.xlab.qr.QrAppHome
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -34,13 +35,14 @@ class MainActivity : ComponentActivity() {
             //MovieApp()
             //ThemeApp()
             //SearchApp()
-            MyMovieApp()
+            //MyMovieApp()
             //MovieDetailScreen()
             //com.calvin.box.movie.xlab.SearchScreen()
             //MovieFilterScreen()
             //MovieSearchScreen()
             //PhotosGrid()
             //MovieHistoryScreen()
+            QrAppHome()
         }
 
 

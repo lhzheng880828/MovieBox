@@ -22,7 +22,7 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 // ViewModel to manage the hot data
-class HomeScreenModel(val appData: AppDataContainer) : ScreenModel {
+class HomeScreenModel(private val appData: AppDataContainer) : ScreenModel {
     private val _hotState = MutableStateFlow<List<String>>(emptyList())
     val hotState: StateFlow<List<String>> = _hotState.asStateFlow()
 
@@ -35,9 +35,8 @@ class HomeScreenModel(val appData: AppDataContainer) : ScreenModel {
 
     private fun initHot() {
         screenModelScope.launch(Dispatchers.IO) {
-            val json = Json{ignoreUnknownKeys=true}
-            val hot:Hot = json.decodeFromString(appData.prefApi.hot.get())
-            _hotState.value = hot.getData().map { it.title }
+            val hotJson = appData.prefApi.hot.get()
+            _hotState.value = Hot.get(hotJson)
         }
         screenModelScope.launch(Dispatchers.Default){
             updateHotPeriodically()

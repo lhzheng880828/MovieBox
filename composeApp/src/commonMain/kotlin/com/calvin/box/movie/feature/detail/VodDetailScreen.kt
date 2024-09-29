@@ -17,15 +17,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -112,6 +106,7 @@ data class VodDetailScreen(val viewModel: VideoModel) : Screen {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ObjectDetails(
     obj: Vod,
@@ -120,11 +115,16 @@ private fun ObjectDetails(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(backgroundColor = Color.White) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.back))
+            TopAppBar(
+                title = { Text("标题") }, // 可以设置标题
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+                    }
                 }
-            }
+
+            )
         },
         modifier = modifier,
     ) { paddingValues ->
@@ -167,7 +167,7 @@ private fun ObjectDetails(
                 Column(Modifier.padding(12.dp)) {
                     Text(
                         obj.vodName,
-                        style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                     )
                     Spacer(Modifier.height(6.dp))
                     LabeledInfo(stringResource(Res.string.label_title), obj.vodName)
@@ -182,7 +182,7 @@ private fun ObjectDetails(
             }
             Text(
                 text = obj.getFormatVodContent(),
-                style = MaterialTheme.typography.body2,
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.White,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -191,7 +191,7 @@ private fun ObjectDetails(
             )
             Spacer(modifier = Modifier.height(16.dp))
             // Line 列表展示
-            androidx.compose.material3.Text("线路", style = MaterialTheme.typography.h6)
+            androidx.compose.material3.Text("线路", style = MaterialTheme.typography.headlineSmall)
             LazyRow {
                 items(flags){
                         flag ->
@@ -222,7 +222,7 @@ private fun ObjectDetails(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            androidx.compose.material3.Text("选集", style = MaterialTheme.typography.h6)
+            androidx.compose.material3.Text("选集", style = MaterialTheme.typography.headlineSmall)
             LazyRow  {
                 items(episodes) { clickedEpisode ->
                     EpisodeItem(

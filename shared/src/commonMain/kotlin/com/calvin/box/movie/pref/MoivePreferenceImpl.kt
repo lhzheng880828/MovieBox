@@ -52,7 +52,7 @@ class MoivePreferenceImpl(
         StringPreference(KEY_KEYWORD, "[]")
     }
     override val hot: Preference<String> by lazy {
-        StringPreference(KEY_HOT, "[]")
+        StringPreference(KEY_HOT, "{}")
     }
     override val ua: Preference<String> by lazy {
         StringPreference(KEY_UA, "")

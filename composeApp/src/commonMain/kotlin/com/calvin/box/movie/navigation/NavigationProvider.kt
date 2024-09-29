@@ -1,7 +1,6 @@
 package com.calvin.box.movie.navigation
 
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.core.annotation.InternalVoyagerApi
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -73,7 +72,7 @@ class NavigationProvider : Navigation {
     }
 
     @Composable
-    @OptIn(ExperimentalMaterialApi::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     fun BottomSheetNavigatorContent(
         bottomSheetNavigator: BottomSheetNavigator,
         content: @Composable () -> Unit

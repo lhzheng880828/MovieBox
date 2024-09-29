@@ -14,19 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.paging.PagingData
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import cafe.adriel.voyager.navigator.tab.Tab
@@ -164,9 +159,9 @@ private fun ObjectFrame(
 
         Spacer(Modifier.height(2.dp))
 
-        Text(obj.vodName, style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold))
-        Text(obj.vodTag, style = MaterialTheme.typography.body2)
-        Text(obj.vodYear, style = MaterialTheme.typography.caption)
+        Text(obj.vodName, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+        Text(obj.vodTag, style = MaterialTheme.typography.labelMedium)
+        Text(obj.vodYear, style = MaterialTheme.typography.labelMedium)
     }
 }
 
