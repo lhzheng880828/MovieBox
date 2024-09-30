@@ -10,6 +10,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
 import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.media.model.PlayerSpeed
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -25,6 +26,7 @@ actual fun CMPPlayer(
     sliderTime: Int?,
     speed: PlayerSpeed
 ) {
+    Napier.d { "#CMPPlayer, refresh ui, url: $url" }
     val context = LocalContext.current
     val exoPlayer = rememberExoPlayerWithLifecycle(url, context, isPause)
     val playerView = rememberPlayerView(exoPlayer, context)

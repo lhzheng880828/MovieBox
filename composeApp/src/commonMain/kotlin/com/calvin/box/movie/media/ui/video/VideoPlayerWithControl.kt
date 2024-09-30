@@ -30,6 +30,7 @@ import com.calvin.box.movie.media.ui.video.controls.LockScreenView
 import com.calvin.box.movie.media.ui.video.controls.TopControlView
 import com.calvin.box.movie.media.util.CMPPlayer
 import com.calvin.box.movie.media.util.setPlayMediaInfo
+import io.github.aakira.napier.Napier
 
 @Composable
 fun VideoPlayerWithControl(
@@ -45,6 +46,7 @@ fun VideoPlayerWithControl(
     isFullScreen: Boolean,
     onFullScreenToggle: (() -> Unit)
 ) {
+    Napier.d { "#VideoPlayerWithControl, refresh ui, url: $url" }
     var totalTime by remember { mutableStateOf(0) } // Total duration of the video
     var currentTime by remember { mutableStateOf(0) } // Current playback time
     var isSliding by remember { mutableStateOf(false) } // Flag indicating if the seek bar is being slid

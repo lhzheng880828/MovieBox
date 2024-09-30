@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.media.model.PlayerConfig
 import com.calvin.box.movie.media.util.LandscapeOrientation
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
@@ -21,7 +22,8 @@ fun VideoPlayerView(
     playMediaInfo: PlayMediaInfo = PlayMediaInfo(url = url1),
     playerConfig: PlayerConfig = PlayerConfig() // Configuration for the player
 ) {
-    val url  by remember { mutableStateOf(url1) }
+    Napier.d { "#VideoPlayerView, refresh ui" }
+
     var isPause by remember { mutableStateOf(false) } // State for pausing/resuming video
     var showControls by remember { mutableStateOf(true) } // State for showing/hiding controls
     var isSeekbarSliding = false // Flag for indicating if the seek bar is being slid
@@ -43,7 +45,7 @@ fun VideoPlayerView(
         // Video player with control
         VideoPlayerWithControl(
             modifier = if (isFullScreen) { Modifier.fillMaxSize()} else { modifier },
-            url = url, // URL of the video
+            url = url1, // URL of the video
             playMediaInfo = playMediaInfo,
             playerConfig = playerConfig, // Player configuration
             isPause = isPause, // Flag indicating if the video is paused

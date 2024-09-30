@@ -82,9 +82,9 @@ fun rememberExoPlayerWithLifecycle(
         if(mediaInfo!=null){
             val headerMap = mediaInfo.headers
             mediaItem = ExoUtil.getMediaItem(headerMap, videoUri, mediaInfo.mimeType, mediaInfo.drm, mediaInfo.subs )
-            Napier.d { "player url: $videoUri, headers: $headerMap" }
+            Napier.d { "Exoplayer url: $videoUri, headers: $headerMap" }
         } else {
-            Napier.d { "player url: $videoUri, mediaInfo is null" }
+            Napier.d { "Exoplayer url: $videoUri, mediaInfo is null" }
         }
         /*val dataSourceFactory = DefaultDataSource.Factory(context)
         val mediaSource = when {

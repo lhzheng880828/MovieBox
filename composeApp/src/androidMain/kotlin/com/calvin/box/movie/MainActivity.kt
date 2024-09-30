@@ -35,14 +35,14 @@ class MainActivity : ComponentActivity() {
             //MovieApp()
             //ThemeApp()
             //SearchApp()
-            //MyMovieApp()
+            MyMovieApp()
             //MovieDetailScreen()
             //com.calvin.box.movie.xlab.SearchScreen()
             //MovieFilterScreen()
             //MovieSearchScreen()
             //PhotosGrid()
             //MovieHistoryScreen()
-            QrAppHome()
+            //QrAppHome()
         }
 
 

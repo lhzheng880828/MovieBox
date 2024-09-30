@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import com.calvin.box.movie.db.MoiveDatabase
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
 
 @Serializable
 @Entity
@@ -27,7 +28,7 @@ data class Keep(
     var vodPic: String? = null,
 
     @SerialName("createTime")
-    var createTime: Long = 0,
+    var createTime: Long =  Clock.System.now().toEpochMilliseconds(),
 
     @SerialName("type")
     var type: Int = 0,
@@ -44,9 +45,9 @@ data class Keep(
             }
         }
 
-        fun find(key: String): Keep = find(VodConfig.cid, key)
+        fun find(key: String): Keep? = find(VodConfig.cid, key)
 
-        fun find(cid: Int, key: String): Keep = runBlocking { MoiveDatabase.get().getKeepDao().find(cid, key)}
+        fun find(cid: Int, key: String): Keep? = runBlocking { MoiveDatabase.get().getKeepDao().find(cid, key)}
 
         fun deleteAll() = runBlocking {  MoiveDatabase.get().getKeepDao().delete() }
 

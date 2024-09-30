@@ -3,9 +3,12 @@ package com.calvin.box.movie.feature.videoplayerview
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.calvin.box.movie.api.config.VodConfig
+import com.calvin.box.movie.bean.Config
+import com.calvin.box.movie.bean.Keep
 import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
+import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.di.AppDataContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /*
  *Author:cl
@@ -30,10 +32,16 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
 
     private val movieRepo = appDataContainer.movieRepository
 
+    private val config = appDataContainer.vodRepository
+
     private val _uiState = MutableStateFlow<UiState>(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    private val _vodPlayState = MutableStateFlow(PlayMediaInfo(url = ""))
+    val vodPlayState: StateFlow<PlayMediaInfo> = _vodPlayState
 
+    private val _keepState = MutableStateFlow(false)
+    val keepState: StateFlow<Boolean> = _keepState
 
     fun getVodDetail(site :Site, vodId:String, vodName:String){
         Napier.d { "#getVodDetail, site: ${site.key}, vodId:$vodId ,vodName: $vodName" }
@@ -136,35 +144,67 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
     }
 
     fun getVodPlayerContent(site :Site, line:String, url:String) {
-        //Napier.d { "#getVodDetail, site: ${site.key}, line:$line ,url: $url" }
         screenModelScope.launch(Dispatchers.IO) {
           val playerResult =  movieRepo.loadPlayerContent(site, line, url)
-
-           val curState = _uiState.value
-            if(curState is UiState.Success){
-                val vodSiteList = curState.data.siteList
-                val vodDetail = curState.data.detail
-                val realUrl = playerResult.getRealUrl()
-                val headers = playerResult.header
-                vodDetail.vodPlayUrl = realUrl
-                vodDetail.playMediaInfo = PlayMediaInfo(playerResult.getHeaders(),realUrl, playerResult.format, playerResult.drm, playerResult.subs )
-                Napier.d { "#getVodPlayerContent, realUrl: $realUrl, headers: $headers" }
-                val updatedData = curState.data.copy(detail = vodDetail, siteList = vodSiteList)
-                _uiState.value = UiState.Loading
-                delay(200)
-                //Napier.i { "#getVodPlayerContent,  delay and setData" }
-                _uiState.value = UiState.Success(updatedData)
-            } else {
-                Napier.d { "err state when update vod detail" }
-            }
+            val realUrl = playerResult.getRealUrl()
+            val headers = playerResult.header
+            Napier.d { "#getVodPlayerContent, realUrl: $realUrl, headers: $headers" }
+            val playMediaInfo = PlayMediaInfo(playerResult.getHeaders(),realUrl, playerResult.format, playerResult.drm, playerResult.subs)
+            _vodPlayState.value = playMediaInfo
         }
     }
+
+
 
 
     private fun isPass(item: Site): Boolean {
         if (autoMode && !item.isChangeable()) return false
         return item.isSearchable()
     }
+
+    fun initKeepState(siteKey :String, vodId:String): Boolean {
+        val configId = config.getConfig().id
+        val keepId = siteKey+ MoiveDatabase.SYMBOL+vodId+MoiveDatabase.SYMBOL+configId
+       val find = Keep.find(keepId)!=null
+        Napier.d { "#initKeepState, find: $find" }
+        return find
+    }
+
+    fun toggleKeep(siteKey: String, siteName: String, vodId: String, vodName: String, vodPic: String) {
+        val configId = config.getConfig().id
+        val keepKey = siteKey+ MoiveDatabase.SYMBOL+vodId+MoiveDatabase.SYMBOL+configId
+        screenModelScope.launch {
+            val currentKeep = Keep.find(keepKey)
+            if (currentKeep != null) {
+                currentKeep.delete()
+                _keepState.value = false
+                //Notify.show(R.string.keep_del)
+            } else {
+                createKeep(keepKey, siteName,vodName,  vodPic)
+                _keepState.value = true
+               // Notify.show(R.string.keep_add)
+            }
+        }
+    }
+
+    private suspend fun createKeep(keepKey: String, siteName: String, voidName: String, vodPic:String) {
+        val keep = Keep(keepKey).apply {
+            val config = movieRepo.configDao.findOne(Config.TYPE.VOD.ordinal)
+            this.cid = config?.id ?: 0
+            this.siteName = siteName
+            this.vodPic = vodPic
+            this.vodName = voidName
+        }
+        keep.save()
+    }
+
+    fun checkKeep(key: String) {
+        screenModelScope.launch {
+            _keepState.value = Keep.find(key) != null
+        }
+    }
+
 }
+
 
 

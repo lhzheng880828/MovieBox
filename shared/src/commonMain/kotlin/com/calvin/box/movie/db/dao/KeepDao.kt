@@ -13,7 +13,7 @@ abstract class KeepDao : BaseDao<Keep>() {
     abstract suspend fun getLive(): List<Keep>
 
     @Query("SELECT * FROM Keep WHERE type = 0 AND cid = :cid AND `key` = :key")
-    abstract suspend fun find(cid: Int, key: String): Keep
+    abstract suspend fun find(cid: Int, key: String): Keep?
 
     @Query("SELECT * FROM Keep WHERE type = 1 AND `key` = :key")
     abstract suspend fun find(key: String): Keep
