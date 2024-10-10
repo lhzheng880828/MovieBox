@@ -93,11 +93,10 @@ class FollowedScreen(
                 }
             }
         }
-        var showDeleteButton by remember { mutableStateOf(false) }
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("最近观看", fontSize = 24.sp) },
+                    title = { Text("收藏", fontSize = 24.sp) },
                     actions = {
                        IconButton(onClick = { /* Sync action */ }) {
                            Icon(
@@ -106,7 +105,7 @@ class FollowedScreen(
                             )
                         }
                        IconButton(onClick = {
-                            showDeleteButton = !showDeleteButton
+                             selectedIds.value+=photos.first().id
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,

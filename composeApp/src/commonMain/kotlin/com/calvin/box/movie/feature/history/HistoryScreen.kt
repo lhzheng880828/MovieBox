@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.ui.draw.clip
 import cafe.adriel.voyager.core.screen.Screen
+import io.github.aakira.napier.Napier
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import network.chaintech.sdpcomposemultiplatform.sdp
@@ -51,13 +52,19 @@ class HistoryScreen:Screen {
                 TopAppBar(
                     title = { Text("最近观看", fontSize = 24.sp) },
                     actions = {
-                        IconButton(onClick = { /* Sync action */ }) {
+                        IconButton(onClick = {
+                            Napier.d { "xbox.history, sync clicked"}
+                            }) {
                             Icon(
                                 imageVector = Icons.Default.Sync,
                                 contentDescription = "Sync Button"
                             )
                         }
-                        IconButton(onClick = { showDeleteButton = !showDeleteButton }) {
+                        IconButton(onClick = {
+                            Napier.d { "xbox.history, delete Btn clicked" }
+                            showDeleteButton = !showDeleteButton
+
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete Button"
@@ -85,7 +92,7 @@ class HistoryScreen:Screen {
 @OptIn(InternalResourceApi::class)
 @Composable
 fun MovieGrid(movies: List<MovieItem>, showDeleteButton: Boolean, onDeleteItem: (MovieItem) -> Unit, modifier: Modifier) {
-
+    Napier.d { "xbox.history, refresh history grid, showDeleteButton:$showDeleteButton" }
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         contentPadding = PaddingValues(8.dp),
@@ -94,13 +101,20 @@ fun MovieGrid(movies: List<MovieItem>, showDeleteButton: Boolean, onDeleteItem: 
         items(movies) { item ->
             Box(modifier = Modifier
                 .padding(8.dp)
-                .clickable { /* Click action */ }) {
+                .fillMaxWidth(), // 确保 Box 占满整个宽度
+                contentAlignment = Alignment.Center // 将内容居中
+                 ) {
                 val transition = updateTransition(true, label ="selected")
 
                 val roundedCornerShape by transition.animateDp(label ="corner"){ selected ->
                     if(selected)16.dp else 0.dp
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable {
+                        Napier.d { "xbox.history, history item clicked" }
+                    }
+                ) {
                     KamelImage(
                         resource = asyncPainterResource(item.imageUrl),
                         contentDescription = item.title,
@@ -114,8 +128,12 @@ fun MovieGrid(movies: List<MovieItem>, showDeleteButton: Boolean, onDeleteItem: 
                     )
                     BasicText(item.title,  modifier = Modifier.padding(top = 8.dp))
                     if (showDeleteButton) {
+                        Napier.d { "xbox.history, grid item, showDeleteButton:$showDeleteButton" }
                         IconButton(onClick = { onDeleteItem(item) }) {
-                            Icons.Filled.Delete
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Item Delete Button"
+                            )
                         }
                     }
                 }
