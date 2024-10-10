@@ -44,7 +44,7 @@ class SettingsScreen:Screen {
     override fun Content() {
         val viewModel: SettingsViewModel = getScreenModel()
         val settingsUiState by viewModel.uiState.collectAsState()
-        Napier.d { "uiState: $settingsUiState" }
+        //Napier.d { "uiState: $settingsUiState" }
         val uiState = settingsUiState ?: return
 
         val nv = LocalNavigator.currentOrThrow

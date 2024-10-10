@@ -110,11 +110,11 @@ private fun ObjectGrid(
 ) {
     LazyRow() {  }
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(180.dp),
+        columns = GridCells.Adaptive(100.dp),
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp)
+        contentPadding = PaddingValues(4.dp)
     ) {
-        items(objects.itemCount, /*key = { it.ifEmpty { it.vodPic } }*/) { index ->
+        items(objects.itemCount) { index ->
             objects[index]?.let {
                 ObjectFrame(
                     obj = it,
@@ -159,9 +159,9 @@ private fun ObjectFrame(
 
         Spacer(Modifier.height(2.dp))
 
-        Text(obj.vodName, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
-        Text(obj.vodTag, style = MaterialTheme.typography.labelMedium)
-        Text(obj.vodYear, style = MaterialTheme.typography.labelMedium)
+        Text(obj.vodName, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), maxLines = 2)
+        //Text(obj.vodTag, style = MaterialTheme.typography.labelMedium)
+        //Text(obj.vodYear, style = MaterialTheme.typography.labelMedium)
     }
 }
 

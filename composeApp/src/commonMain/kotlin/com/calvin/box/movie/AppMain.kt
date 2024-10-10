@@ -1,31 +1,36 @@
 package com.calvin.box.movie
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+//import androidx.compose.material3.rememberScaffoldState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-//import androidx.compose.material3.rememberScaffoldState
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -36,8 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -49,10 +54,13 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabDisposable
 import cafe.adriel.voyager.navigator.tab.TabNavigator
 import cafe.adriel.voyager.transitions.SlideTransition
+import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.feature.collection.SearchScreen
 import com.calvin.box.movie.feature.followed.FollowedScreen
 import com.calvin.box.movie.feature.history.HistoryScreen
 import com.calvin.box.movie.feature.settings.SettingsScreen
+import com.calvin.box.movie.feature.settings.SiteCallback
+import com.calvin.box.movie.feature.settings.VodSitesDialog
 import com.calvin.box.movie.font.FontType
 import com.calvin.box.movie.font.MediaFont
 import com.calvin.box.movie.navigation.LocalNavigation
@@ -67,7 +75,6 @@ import com.calvin.box.movie.utility.BottomNavigationBarHeight
 import com.calvin.box.movie.utility.getSafeAreaSize
 import io.github.aakira.napier.Napier
 import network.chaintech.sdpcomposemultiplatform.sdp
-import kotlin.random.Random
 
 @Composable
 fun MyMovieApp() {
@@ -104,7 +111,7 @@ class HomeScreen : Screen {
     override fun Content() {
         Napier.i { "enter homeScreen" }
         val nv = LocalNavigator.currentOrThrow
-        val viewModel:HomeScreenModel = getScreenModel()
+        val viewModel: HomeScreenModel = getScreenModel()
         Scaffold(
             modifier = Modifier
                 ///.background(color = MyApplicationTheme.colors.bottomTabBarColor)
@@ -124,20 +131,29 @@ class HomeScreen : Screen {
                 }
             },
             topBar = {
-                RootScreenAppBar("Home",
+                RootScreenAppBar(
                     refreshing = false,
                     viewModel = viewModel,
                     onRefreshActionClick = {},
-                    onSearchActionClick = { nv.push(SearchScreen()) },
+                    onSearchActionClick = {
+                        Napier.d { "search field clicked." }
+                        nv.push(SearchScreen())
+                    },
                     onFavoriteActionClick = { nv.push(FollowedScreen()) },
                     onHistoryActionClick = { nv.push(HistoryScreen()) },
                     onSettingsActionClick = { nv.push(SettingsScreen()) }
                 )
             },
 
+            ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding) // 添加内边距
+                    .fillMaxSize()
             ) {
+                CurrentTab()
+            }
 
-            CurrentTab()
         }
     }
 }
@@ -150,8 +166,8 @@ class HomeScreen : Screen {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RootScreenAppBar(
-    title: String,
-    viewModel:HomeScreenModel,
+    title: String = "主站",
+    viewModel: HomeScreenModel,
     // loggedIn: Boolean,
     //user: TraktUser?,
     refreshing: Boolean,
@@ -164,41 +180,71 @@ fun RootScreenAppBar(
     //scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     Napier.d { "draw RootScreenAppBar" }
+    val showSite by remember { mutableStateOf(viewModel.showSite()) }
+
+    var showSitesDialog by remember { mutableStateOf(false) }
+
+    val siteList by remember { mutableStateOf(viewModel.getSiteList()) }
+
+    val siteName = viewModel.getHomeSite()?.name
+    val titleName = if(siteName.isNullOrEmpty()) title else siteName
+
     TopAppBar(
         modifier = modifier,
         //colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
         //scrollBehavior = scrollBehavior,
         title = {
             Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            //horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text =title, // 这里是左边显示的标题
-                modifier = Modifier.padding(start = 8.dp)
-            )
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                //horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Site Home",
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 4.dp)
+                        .clickable {
+                            showSitesDialog = true
+                        }
+                )
+                if (showSite) {
+                    Text(
+                        text = titleName,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 4.dp)
+                            .clickable {
+                                showSitesDialog = true
+                            }
 
-            SearchBar(
-                viewModel = viewModel,
-                modifier = Modifier
-                    .width(200.dp)
-                    .padding(horizontal = 2.dp)
-            )
-        } },
+                    )
+                }
+                if (!showSite) {
+                    Box(
+                        modifier = Modifier
+                            .clickable {
+                                onSearchActionClick()
+                            }
+                    ) {
+                        SearchBar(viewModel = viewModel)
+                    }
+                }
+            }
+        },
         actions = {
             // This button refresh allows screen-readers, etc to trigger a refresh.
             // We only show the button to trigger a refresh, not to indicate that
             // we're currently refreshing, otherwise we have 4 indicators showing the
             // same thing.
-            Crossfade(
-                targetState = refreshing,
-                modifier = Modifier.align(Alignment.CenterVertically),
-            ) { isRefreshing ->
-                if (!isRefreshing) {
-                    RefreshButton(onClick = onRefreshActionClick)
-                }
-            }
+            /* Crossfade(
+                 targetState = refreshing,
+                 modifier = Modifier.align(Alignment.CenterVertically),
+             ) { isRefreshing ->
+                 if (!isRefreshing) {
+                     RefreshButton(onClick = onRefreshActionClick)
+                 }
+             }*/
 
             /* UserProfileButton(
                  loggedIn = loggedIn,
@@ -206,14 +252,17 @@ fun RootScreenAppBar(
                  onClick = onUserActionClick,
                  modifier = Modifier.align(Alignment.CenterVertically),
              )*/
-            IconButton(
-                onClick = onSearchActionClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search Button"
-                )
+            if (showSite) {
+                IconButton(
+                    onClick = onSearchActionClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search Button"
+                    )
+                }
             }
+
             IconButton(
                 onClick = onFavoriteActionClick
             ) {
@@ -241,37 +290,65 @@ fun RootScreenAppBar(
             }
         },
     )
+
+    if (showSitesDialog) {
+        VodSitesDialog(
+            siteCallback = object : SiteCallback {
+                override fun setSite(item: Site) {
+                    viewModel.setHomeSite(item)
+                }
+
+                override fun onChanged() {
+
+                }
+
+            },
+            showSearchBar = false,
+            sites = siteList,
+            onSiteSelected = {},
+
+            ) { showSitesDialog = false }
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SearchBar( viewModel: HomeScreenModel, modifier: Modifier = Modifier) {
+fun SearchBar(viewModel: HomeScreenModel) {
     val hotState by viewModel.hotState.collectAsState()
     val randomIndex by viewModel.randomIndex.collectAsState()
     Napier.d { "draw SearchBar ${hotState.size}, randomIndex: $randomIndex" }
-    var textState by remember { mutableStateOf(TextFieldValue("")) }
+    var textState by remember { mutableStateOf("") }
     var randomHotWord = ""
-    if(hotState.isNotEmpty()){
-        if(randomIndex<hotState.size){
+    if (hotState.isNotEmpty()) {
+        if (randomIndex < hotState.size) {
             randomHotWord = hotState[randomIndex]
-        } else{
+        } else {
             randomHotWord = hotState[0]
         }
     }
-
     TextField(
         value = textState,
+        readOnly = true,
+        enabled = false,
         onValueChange = { textState = it },
-        placeholder = { Text(randomHotWord) },
-        modifier = modifier
-            //.background(Color.White, shape = RoundedCornerShape(16.dp))
-            .padding(vertical = 2.dp),
-        /*colors = TextFieldDefaults.textFieldColors(
-            backgroundColor = Color.Transparent,
+        placeholder = { Text(randomHotWord, maxLines = 1) },
+        modifier = Modifier
+            .width(160.dp)
+            .height(56.dp),
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
+        },
+        shape = RoundedCornerShape(24.dp),
+        colors = TextFieldDefaults.colors().copy(
+            //focusedContainerColor = Color.Transparent,
+            //unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        ),*/
-        shape = RoundedCornerShape(2.dp)
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+        )
     )
+
 }
 
 @Composable

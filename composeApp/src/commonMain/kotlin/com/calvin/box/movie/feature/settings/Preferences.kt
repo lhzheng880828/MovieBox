@@ -575,7 +575,7 @@ fun VodPreference(
     }
 
     if (showSitesDialog) {
-        //SitesDialog(sites, onSiteSelected) { showSitesDialog = false }
+
         VodSitesDialog(
             siteCallback = onSiteCallback,
             sites = sites,

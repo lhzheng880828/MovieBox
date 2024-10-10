@@ -27,15 +27,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
+import com.calvin.box.movie.api.config.VodConfig
+import com.calvin.box.movie.bean.Vod
+import com.calvin.box.movie.model.VideoModel
+import com.calvin.box.movie.navigation.LocalNavigation
 import com.calvin.box.movie.theme.hideKeyboard
+import com.calvin.box.movie.utils.UrlProcessor
 import io.github.aakira.napier.Napier
+import io.kamel.core.utils.cacheControl
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
+import io.ktor.client.request.header
+import io.ktor.client.utils.CacheControl
 
 // 模拟数据
 data class SearchRecord(val id: Int, val text: String)
@@ -253,8 +265,8 @@ fun ResultContent() {
 }
 
 
-data class MovieData(val id: String,   val title: String, val site: String, val episodes: String, val rating: String)
-data class SiteData(val id: String, val site: String)
+data class MovieData(val id: String, val title: String, val siteKey: String, val siteName: String,  val vodPic: String, val appendData: Vod)
+data class SiteData(val id: String, val siteName: String)
 
 class SearchScreen(private val keyword: String = "异形：夺命舰"):Screen {
 
@@ -280,7 +292,16 @@ class SearchScreen(private val keyword: String = "异形：夺命舰"):Screen {
         }else mutableListOf(SiteData("all", "全部"))
 
         val searchResults = if(state is SearchState.Site2VodCollection){
-            (state as SearchState.Site2VodCollection).collections.map { MovieData(it.vodId, it.vodName, it.getSiteKey(), it.vodRemarks,it.ratio.toString()) }
+            (state as SearchState.Site2VodCollection).collections.map {
+                MovieData(
+                id =    it.vodId,
+                title =    it.vodName,
+                siteKey = it.getSiteKey(),
+                siteName =  it.getSiteName(),
+               vodPic =  it.vodPic,
+                    appendData = it,
+                    )
+            }
         }else emptyList()
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -345,9 +366,9 @@ class SearchScreen(private val keyword: String = "异形：夺命舰"):Screen {
             } else {
 
                 var selectedSite by remember { mutableStateOf(sites.first()) }
-                val filteredMovies = remember(selectedSite) {
+                var filteredMovies = remember(selectedSite){
                     if (selectedSite.id == "all") searchResults
-                    else searchResults.filter { it.site == selectedSite.site }
+                    else searchResults.filter { it.siteKey == selectedSite.id }
                 }
 
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -355,11 +376,17 @@ class SearchScreen(private val keyword: String = "异形：夺命舰"):Screen {
                     SiteList(
                         sites = sites,
                         selectedSite = selectedSite,
-                        onSiteSelected = { selectedSite = it }
+                        onSiteSelected = { site ->
+                            selectedSite = site
+                            filteredMovies =  if (selectedSite.id == "all") searchResults
+                            else searchResults.filter { it.siteKey == selectedSite.id }
+
+                            Napier.d { "site: ${selectedSite.siteName}, filterMovie Site: ${filteredMovies.size}" }
+                        }
                     )
 
                     // 右侧电影列表
-                    MovieList(movies = filteredMovies)
+                    MovieList(movies = filteredMovies, true)
                 }
 
 
@@ -453,7 +480,7 @@ fun SiteList(
 ) {
     LazyColumn(
         modifier = Modifier
-            .width(120.dp)
+            .width(100.dp)
             .fillMaxHeight()
     ) {
         items(sites) { site ->
@@ -476,27 +503,64 @@ fun SiteItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSiteSelected(site) }
-            .padding(vertical = 16.dp, horizontal = 8.dp)
+            .padding(vertical = 8.dp, horizontal = 4.dp)
+            .background(color =  if(isSelected) MaterialTheme.colorScheme.primary else  MaterialTheme.colorScheme.surface)
     ) {
         Text(
-            text = site.site,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black,
-            style = MaterialTheme.typography.bodyLarge
+            text = site.siteName,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
         )
     }
 }
 
 @Composable
-fun MovieList(movies: List<MovieData>) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(8.dp)
-    ) {
-        items(movies) { movie ->
-            MovieItem(movie = movie)
+fun MovieList(movies: List<MovieData>, gridLayout: Boolean) {
+    Napier.d { "refresh movie list" }
+    val navigator =  LocalNavigation.current
+    if(gridLayout){
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(100.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(8.dp)
+        ) {
+            items(movies) { movie ->
+                MovieItem(movie = movie, onClick = {
+                    val homeSiteKey = VodConfig.get().getHome()?.key
+                    val isIndexs =  VodConfig.get().getHome()?.isIndexs()
+                    val vodObj = movie.appendData
+                    val isFolder = vodObj.isFolder()
+                    val isManga = vodObj.isManga()
+                    val action = vodObj.action
+                    Napier.d { "vod item clicked, homeSiteKey:$homeSiteKey, isIndexs: $isIndexs," +
+                            " isFolder: $isFolder, isManga:$isManga, action: $action" }
+
+                    val videoModel = VideoModel(id = vodObj.vodId, description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
+                        subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName, siteKey = movie.siteKey)
+                    navigator.goToVideoPlayerScreen(videoModel)
+
+                    if(action.isNotEmpty()){
+
+                    } else if(isFolder){
+
+                    } else {
+                        if(isIndexs == true){
+
+                        } else if(isManga){
+                            navigator.goToDetailScreen(videoModel)
+                        } else {
+                            navigator.goToVideoPlayerScreen(videoModel)
+                        }
+
+                    }
+                })
+            }
         }
+
+    } else {
+        LazyRow() {  }
     }
+
 }
 
 /*@Composable
@@ -534,8 +598,11 @@ fun MovieItem(movie: Movie) {
 }*/
 
 @Composable
-fun MovieItem(movie: MovieData) {
-    Card(
+fun MovieItem(movie: MovieData,
+              onClick: () -> Unit,
+              modifier: Modifier = Modifier,
+              ) {
+    /* Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
@@ -546,18 +613,61 @@ fun MovieItem(movie: MovieData) {
             Column {
                 Text(text = movie.title, fontSize = 20.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "站点: ${movie.site}", fontSize = 14.sp, color = Color.Gray)
+                Text(text = "站点: ${movie.siteId}", fontSize = 14.sp, color = Color.Gray)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "集数: ${movie.episodes}", fontSize = 14.sp, color = Color.Gray)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(text = "评分: ${movie.rating}", fontSize = 14.sp, color = Color.Gray)
             }
         }
+    }*/
+
+    Column(
+        modifier
+            .padding(8.dp)
+            .clickable { onClick() }
+    ) {
+        val url = movie.vodPic
+        val (processedUrl, headers) = remember(url) { UrlProcessor.processUrl(url) }
+        //Napier.d { "processedUrl: $processedUrl, headers: $headers" }
+        KamelImage(
+            resource = asyncPainterResource(data = processedUrl) {
+                requestBuilder { // this: HttpRequestBuilder
+                    for (h in headers) {
+                        header(h.key, h.value)
+                    }
+                    // parameter("Key", "Value")
+                    cacheControl(CacheControl.MAX_AGE)
+                }
+            },
+            contentDescription = movie.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .background(Color.LightGray),
+        )
+        Spacer(Modifier.height(2.dp))
+        /*Text(
+            text = movie.siteKey,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1
+        )*/
+        Text(
+            movie.siteName,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1
+        )
+        Text(
+            movie.title,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1
+        )
     }
-}
 
 
-@Composable
-fun DefaultPreview() {
-    SearchScreen()
+    @Composable
+    fun DefaultPreview() {
+        SearchScreen()
+    }
 }

@@ -8,6 +8,7 @@ package com.calvin.box.movie
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.calvin.box.movie.bean.Hot
+import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.di.AppDataContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
@@ -42,6 +44,24 @@ class HomeScreenModel(private val appData: AppDataContainer) : ScreenModel {
             updateHotPeriodically()
 
         }
+    }
+
+    fun showSite():Boolean {
+       return runBlocking {
+           appData.prefApi.homeDisplayName.get()
+       }
+    }
+
+    fun getSiteList():List<Site>{
+       return appData.vodRepository.getSites()
+    }
+
+    fun getHomeSite():Site?{
+        return appData.vodRepository.getHome()
+    }
+
+    fun setHomeSite(site: Site){
+        return appData.vodRepository.setHome(site)
     }
 
     private fun getHot() {

@@ -125,9 +125,9 @@ class SearchScreenModel(appDataContainer: AppDataContainer) : StateScreenModel<S
                 if (isPass(siteItem)) matchedSites.add(siteItem)
             }
             Napier.d { "matchedSite size: ${matchedSites.size}" }
-            for (matchedSite in matchedSites.filterIndexed { index, site -> index < 10 }) {
+            for (matchedSite in matchedSites/*.filterIndexed { index, site -> index < 10 }*/) {
                 try {
-                    val loopVodList = movieRepo.loadSearchContent(matchedSite, keyword, false, "1").list
+                    val loopVodList = movieRepo.loadSearchContent(matchedSite, keyword, true, "1").list
                     vodList[matchedSite] = loopVodList
                 } catch (e: Exception) {
                     e.printStackTrace()

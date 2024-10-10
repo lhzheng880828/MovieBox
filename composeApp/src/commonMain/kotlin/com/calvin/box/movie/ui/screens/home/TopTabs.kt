@@ -138,14 +138,14 @@ fun SwipeableTabLayout(viewModel: HomeTabViewModel) {
                                 }
                                       },
                             text = { Text(tabItem.options.title) },
-                            icon = {
+                            /*icon = {
                                 tabItem.options.icon?.let { it1 ->
                                     Icon(
                                         painter = it1,
                                         contentDescription = null
                                     )
                                 }
-                            }
+                            }*/
                         )
                     }
                 }

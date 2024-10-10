@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -16,17 +17,18 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,12 +45,14 @@ fun VodSitesDialog(
     siteCallback: SiteCallback,
     sites: List<Site>,
     onSiteSelected: (String) -> Unit,
-    showSearch: Boolean = true,
+    showSearchBar: Boolean = true,
     showChange: Boolean = true,
     onDismiss: () -> Unit
 ) {
     var keyword by remember { mutableStateOf("") }
     var filteredSites by remember { mutableStateOf(sites) }
+    val initSelectedIndex = filteredSites.indexOfFirst { it.activated }.takeIf { it != -1 } ?: 0
+    val itemToScrollTo by remember { mutableStateOf(initSelectedIndex) }
 
     // 更新站点列表
     fun searchSite() {
@@ -61,10 +65,10 @@ fun VodSitesDialog(
     // Dialog 构建
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Select Site") },
+        title = { Text(text = "选择站点") },
         text = {
             Column {
-                if (showSearch) {
+                if (showSearchBar) {
                     SearchBar(
                         keyword = keyword,
                         onKeywordChange = {
@@ -74,7 +78,17 @@ fun VodSitesDialog(
                         onSearchClick = { searchSite() }
                     )
                 }
-                LazyColumn {
+                // 创建 LazyListState
+                val listState = rememberLazyListState()
+
+                // 在 Composable 的 LaunchedEffect 中实现滚动
+                LaunchedEffect(itemToScrollTo) {
+                    itemToScrollTo.let { index ->
+                        listState.animateScrollToItem(index)
+                    }
+                }
+
+                LazyColumn(state = listState) {
                     items(filteredSites) { site ->
                         SiteListItem(
                             site = site,
@@ -118,7 +132,7 @@ fun VodSitesDialog(
                                 val result = !it.isChangeable()
                                 sites.forEach {
                                     it.setChangeable(result)
-                                    runBlocking {  it.save()}
+                                    runBlocking { it.save() }
                                 }
                                 searchSite()
                                 true
@@ -130,7 +144,7 @@ fun VodSitesDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text("关闭")
             }
         }
     )
@@ -151,7 +165,7 @@ fun SearchBar(
         TextField(
             value = keyword,
             onValueChange = onKeywordChange,
-            label = { Text("Search") },
+            label = { Text("搜索") },
             modifier = Modifier
                 .weight(1f)
                 .padding(end = 8.dp),
@@ -182,7 +196,7 @@ fun SiteListItem(
             .clickable {
                 onTextClick()
             }
-            .background(color = if(activated) Color.Blue else Color.White),
+            .background(color = if (activated) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -193,14 +207,30 @@ fun SiteListItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        IconButton(onClick = { onSearchClick(0, site) }, /*onLongClick = { onSearchLongClick(site) }*/) {
+        IconButton(
+            onClick = {
+                onSearchClick(
+                    0,
+                    site
+                )
+            },
+            /*onLongClick = { onSearchLongClick(site) }*/
+        ) {
             Icon(
                 Icons.Filled.Search,
                 //painter = painterResource(id = if (site.isSearchable) R.drawable.ic_site_search else R.drawable.ic_site_block),
                 contentDescription = null
             )
         }
-        IconButton(onClick = { onChangeClick(0, site) }, /*onLongClick = { onChangeLongClick(site) }*/) {
+        IconButton(
+            onClick = {
+                onChangeClick(
+                    0,
+                    site
+                )
+            },
+            /*onLongClick = { onChangeLongClick(site) }*/
+        ) {
             Icon(
                 Icons.Filled.ChangeCircle,
                 //painter = painterResource(id = if (site.isChangeable) R.drawable.ic_site_change else R.drawable.ic_site_block),
