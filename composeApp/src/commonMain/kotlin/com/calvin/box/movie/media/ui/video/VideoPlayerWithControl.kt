@@ -44,7 +44,10 @@ fun VideoPlayerWithControl(
     onShowControlsToggle: (() -> Unit), // Callback for toggling show/hide controls
     onChangeSeekbar: ((Boolean) -> Unit), // Callback for seek bar sliding
     isFullScreen: Boolean,
-    onFullScreenToggle: (() -> Unit)
+    onFullScreenToggle: (() -> Unit),
+    totalTimeFun: ((Int) -> Unit),
+    currentTimeFun: ((Int) -> Unit),
+
 ) {
     Napier.d { "#VideoPlayerWithControl, refresh ui, url: $url" }
     var totalTime by remember { mutableStateOf(0) } // Total duration of the video
@@ -73,12 +76,16 @@ fun VideoPlayerWithControl(
             url = url,
             isPause = isPause,
             isMute = isMute,
-            totalTime = { totalTime = it }, // Update total time of the video
+            totalTime = {
+                totalTime = it
+                totalTimeFun(it)
+                        }, // Update total time of the video
             currentTime = {
                 if (isSliding.not()) {
                     currentTime = it // Update current playback time
                     sliderTime = null // Reset slider time if not sliding
                 }
+                currentTimeFun(it)
             },
             isSliding = isSliding, // Pass seek bar sliding state
             sliderTime = sliderTime, // Pass seek bar slider time

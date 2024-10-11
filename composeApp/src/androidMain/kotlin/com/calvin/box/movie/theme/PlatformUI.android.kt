@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
+import com.calvin.box.movie.feature.history.HistoryScreenModel
 import com.calvin.box.movie.utility.SafeAreaSize
 
 
@@ -21,6 +22,14 @@ internal actual fun SystemAppearance(isDark: Boolean) {
     }
 }
 
+@Composable
+internal actual fun BackHandler(inSelectionMode: Boolean, viewModel: HistoryScreenModel) {
+    androidx.activity.compose.BackHandler {
+        if (inSelectionMode) {
+            viewModel.exitSelectionMode()
+        }
+    }
+}
 
 internal actual val DynamicColorsAvailable: Boolean
     get() = true

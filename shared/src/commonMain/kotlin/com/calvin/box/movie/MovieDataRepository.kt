@@ -6,7 +6,9 @@ import com.calvin.box.movie.bean.ApkVersion
 import com.calvin.box.movie.bean.Class
 import com.calvin.box.movie.bean.Config
 import com.calvin.box.movie.bean.DownloadStatus
+import com.calvin.box.movie.bean.History
 import com.calvin.box.movie.bean.Hot
+import com.calvin.box.movie.bean.Keep
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
@@ -14,8 +16,12 @@ import com.calvin.box.movie.db.MoiveDatabase
 import com.calvin.box.movie.network.MoiveApi
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class MovieDataRepository (
     private val api: MoiveApi,
@@ -30,6 +36,7 @@ class MovieDataRepository (
 
     val configDao = database.getConfigDao()
     val keepDao = database.getKeepDao()
+    val historyDao = database.getHistoryDao()
 
      fun loadFirstConfig(type: Config.TYPE): Flow<Config?> {
         return database.getConfigDao().findOneFlow(type.ordinal)
@@ -48,6 +55,72 @@ class MovieDataRepository (
      fun loadAllConfig(type: Config.TYPE): Flow<List<Config>>{
         return database.getConfigDao().findByTypeFlow(type.ordinal)
     }
+
+    // 获取所有Vod类型的Keep
+    fun getKeepVodList(): Flow<List<Keep>> = flow {
+        emit(keepDao.getVod())
+    }.flowOn(Dispatchers.IO)
+
+    // 根据CID和Key查找某个Keep
+    fun findKeep(cid: Int, key: String): Flow<Keep?> = flow {
+        emit(keepDao.find(cid, key))
+    }.flowOn(Dispatchers.IO)
+
+    // 根据Key查找某个特定类型的Keep
+    fun findKeepByKey(key: String): Flow<Keep?> = flow {
+        emit(keepDao.find(key))
+    }.flowOn(Dispatchers.IO)
+
+    // 删除某个Vod类型的Keep
+    suspend fun deleteKeep(cid: Int, key: String) {
+        keepDao.delete(cid, key)
+    }
+
+    // 删除某个特定类型的Keep
+    suspend fun deleteKeepByKey(key: String) {
+        keepDao.delete(key)
+    }
+
+    // 删除某个CID下的所有Keep
+    suspend fun deleteKeepByCid(cid: Int) {
+        keepDao.delete(cid)
+    }
+
+    // 删除所有Vod类型的Keep
+    suspend fun deleteAllKeep() {
+        keepDao.delete()
+    }
+
+    // 根据CID获取观看历史记录
+    fun getHistoryByCid(cid: Int): Flow<List<History>> = flow {
+        emit(historyDao.find(cid))
+    }.flowOn(Dispatchers.IO)
+
+    // 根据CID和Key查找具体的历史记录
+    fun findHistoryByKey(cid: Int, key: String): Flow<History?> = flow {
+        emit(historyDao.find(cid, key))
+    }.flowOn(Dispatchers.IO)
+
+    // 根据CID和VodName查找历史记录
+    fun findHistoryByName(cid: Int, vodName: String): Flow<List<History>> = flow {
+        emit(historyDao.findByName(cid, vodName))
+    }.flowOn(Dispatchers.IO)
+
+    // 删除指定CID和Key的历史记录
+    suspend fun deleteHistory(cid: Int, key: String) {
+        historyDao.delete(cid, key)
+    }
+
+    // 删除指定CID下的所有历史记录
+    suspend fun deleteHistoryByCid(cid: Int) {
+        historyDao.delete(cid)
+    }
+
+    // 删除所有历史记录
+    suspend fun deleteAllHistory() {
+        historyDao.delete()
+    }
+
 
     suspend fun getHotwords():Hot{
        return api.getHotword()

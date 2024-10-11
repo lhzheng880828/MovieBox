@@ -4,6 +4,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.calvin.box.movie.api.config.VodConfig
 import com.calvin.box.movie.bean.Config
+import com.calvin.box.movie.bean.History
 import com.calvin.box.movie.bean.Keep
 import com.calvin.box.movie.bean.PlayMediaInfo
 import com.calvin.box.movie.bean.Site
@@ -13,11 +14,11 @@ import com.calvin.box.movie.di.AppDataContainer
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /*
  *Author:cl
@@ -33,6 +34,8 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
     private val movieRepo = appDataContainer.movieRepository
 
     private val config = appDataContainer.vodRepository
+
+    private val pref = appDataContainer.prefApi
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -153,8 +156,38 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
             _vodPlayState.value = playMediaInfo
         }
     }
+    private var mHistory: History? = null
 
+    fun getOrCreateHistory(siteKey: String, vodId: String, vod: Vod) {
+        val configId = config.getConfig().id
+        val historyKey = siteKey+ MoiveDatabase.SYMBOL+vodId+MoiveDatabase.SYMBOL+configId
+        mHistory = History.find(historyKey) ?: createHistory(historyKey,configId, vod)
+    }
+    private fun createHistory(historyKey: String, configId: Int, vod: Vod): History {
+        return History().apply {
+            key =  historyKey
+            cid = configId
+            vodName = vod.vodName
+            findEpisode(vod.vodFlags)
+            speed = runBlocking { pref.playSpeed.get() }
+        }
+    }
 
+    fun updateHistory( currentTime: Int, totalTime: Int){
+        mHistory?.apply {
+            this.position = currentTime.toLong()
+            this.duration = totalTime.toLong()
+            val isInCognito = runBlocking { pref.incognito.get() }
+            if (position >= 0 && duration > 0 && !isInCognito) {
+                update()
+            }
+            if (this.ending > 0 && duration > 0 && this.ending + position >= duration) {
+                // 在视频播放结束时停止回调并处理下一步逻辑
+                // mClock.setCallback(null)
+                //checkNext()
+            }
+        }
+    }
 
 
     private fun isPass(item: Site): Boolean {

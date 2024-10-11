@@ -8,6 +8,7 @@ import com.calvin.box.movie.api.config.VodConfig
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import com.calvin.box.movie.db.MoiveDatabase
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.runBlocking
 
 @Serializable
@@ -60,7 +61,7 @@ data class History(
     val isNew: Boolean
         get() = createTime == 0L && position == 0L
 
-    fun checkParam(item: History) {
+    private fun checkParam(item: History) {
         if (opening == 0L) opening = item.opening
         if (ending == 0L) ending = item.ending
         if (speed == 1f) speed = item.speed
@@ -91,6 +92,7 @@ data class History(
     }
 
    suspend fun save(): History {
+       Napier.d { "save history info: $this" }
         MoiveDatabase.get().getHistoryDao().insertOrUpdate(this)
         return this
     }
@@ -105,8 +107,7 @@ data class History(
     }
 
     fun find(): List<History> {
-       // return AppDatabase.get().getHistoryDao().findByName(VodConfig.getCid(), vodName.orEmpty())
-        return emptyList()
+       return runBlocking { MoiveDatabase.get().getHistoryDao().findByName(VodConfig.cid, vodName) }
     }
 
     fun findEpisode(flags: List<Flag>) {
@@ -132,24 +133,23 @@ data class History(
     override fun toString(): String = Json.encodeToString(serializer(), this)
 
     companion object {
-        //private val json = Json { ignoreUnknownKeys = true }
+        private val json = Json { ignoreUnknownKeys = true }
 
         fun objectFrom(str: String): History {
-            return Json.decodeFromString(serializer(), str)
+            return json.decodeFromString(serializer(), str)
         }
 
         fun arrayFrom(str: String): List<History> {
-            return Json.decodeFromString( str)
+            return json.decodeFromString( str)
         }
 
         fun get(): List<History> = get(VodConfig.cid)
 
         fun get(cid: Int): List<History> {
-            //return AppDatabase.get().getHistoryDao().find(cid)
-            return emptyList()
+            return runBlocking { MoiveDatabase.get().getHistoryDao().find(cid) }
         }
 
-        fun find(key: String): History {
+        fun find(key: String): History? {
             return runBlocking {  MoiveDatabase.get().getHistoryDao().find(VodConfig.cid, key)}
         }
 
@@ -177,7 +177,7 @@ data class History(
             // App.execute has been replaced with a more KMP-friendly approach
             // You might want to use a coroutine or a platform-specific threading mechanism here
             startSync(targets)
-           // RefreshEvent.history()
+           //RefreshEvent.history()
         }
     }
 }

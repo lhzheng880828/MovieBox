@@ -3,6 +3,7 @@ package com.calvin.box.movie.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.focus.FocusManager
+import com.calvin.box.movie.feature.history.HistoryScreenModel
 import com.calvin.box.movie.utility.SafeAreaSize
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
@@ -27,6 +28,11 @@ actual fun SystemAppearance(isDark:Boolean) {
     }
 }
 
+@Composable
+actual fun BackHandler(inSelectionMode: Boolean, viewModel: HistoryScreenModel) {
+
+
+}
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun getSafeAreaHeight(): SafeAreaSize {

@@ -19,6 +19,8 @@ import com.calvin.box.movie.feature.collection.SearchScreenModel
 import com.calvin.box.movie.feature.settings.PlayerSetsModel
 import com.calvin.box.movie.feature.settings.PersonalSetsModel
 import com.calvin.box.movie.feature.detail.VodDetailScreenModel
+import com.calvin.box.movie.feature.followed.KeepScreenModel
+import com.calvin.box.movie.feature.history.HistoryScreenModel
 
 import com.calvin.box.movie.HomeScreenModel
 
@@ -88,6 +90,8 @@ val screenModelsModule = module {
     factoryOf( ::PlayerSetsModel )
     factoryOf( ::PersonalSetsModel)
     factoryOf( ::VodDetailScreenModel)
+    factoryOf( ::KeepScreenModel)
+    factoryOf( ::HistoryScreenModel)
 
 }
 

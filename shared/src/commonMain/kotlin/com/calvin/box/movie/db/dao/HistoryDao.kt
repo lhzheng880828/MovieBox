@@ -10,7 +10,7 @@ abstract class HistoryDao : BaseDao<History>() {
     abstract suspend fun find(cid: Int): List<History>
 
     @Query("SELECT * FROM History WHERE cid = :cid AND `key` = :key")
-    abstract suspend fun find(cid: Int, key: String): History
+    abstract suspend fun find(cid: Int, key: String): History?
 
     @Query("SELECT * FROM History WHERE cid = :cid AND vodName = :vodName")
     abstract suspend fun findByName(cid: Int, vodName: String): List<History>

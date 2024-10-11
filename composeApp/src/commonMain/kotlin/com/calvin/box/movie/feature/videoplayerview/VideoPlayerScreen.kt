@@ -26,7 +26,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Favorite
@@ -45,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
@@ -66,6 +68,7 @@ import com.calvin.box.movie.navigation.LocalNavigation
 import com.calvin.box.movie.ui.components.BackButtonNavBar
 import com.calvin.box.movie.utility.getSafeAreaSize
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.runBlocking
 import network.chaintech.sdpcomposemultiplatform.sdp
 
 class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
@@ -74,7 +77,6 @@ class WrapVideoPlayerView(private val currentVideo: VideoModel) : Screen {
     private val vodName = currentVideo.title
 
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val vodDetailModel: VideoPlayerViewModel = getScreenModel()
@@ -123,14 +125,17 @@ private fun VideoPlayerContentView(currentVideo: VideoModel,
             var episode by remember { mutableStateOf(firstEpisode) }
 
             val playMediaInfo by vodDetailModel.vodPlayState.collectAsState(initial = playInfo)
-            //Napier.d { "playMediaInfo url: ${playMediaInfo.url}" }
-            val playUrl = playMediaInfo.url.takeIf { it.isNotEmpty() } ?: detail.vodPlayUrl ?: ""
+            val playUrl = playMediaInfo.url.takeIf { it.isNotEmpty() } ?: detail.vodPlayUrl
 
+            //TODO 切换线路及剧集列表时需要更新收藏状态
             val initKeepValue =  vodDetailModel.initKeepState(siteKey = currentVideo.siteKey, vodId = currentVideo.id)
             val keepState by vodDetailModel.keepState.collectAsState(initial = initKeepValue)
 
-
-            Napier.d { "VideoPlayer play url: $playUrl, keepState: $keepState" }
+            //TODO 切换线路及剧集列表时需要更新播放历史
+            var totalTime = 0
+            var currentTime = 0
+            vodDetailModel.getOrCreateHistory(vodSite.key, detail.vodId, detail)
+            Napier.d(tag = TAG) { "VideoPlayer play url: $playUrl, keepState: $keepState" }
 
             Column(
                 modifier = Modifier
@@ -152,7 +157,7 @@ private fun VideoPlayerContentView(currentVideo: VideoModel,
                         modifier = Modifier.fillMaxWidth()
                             .height(164.sdp),
                         url1 = playUrl,
-                        playMediaInfo = playMediaInfo!!,
+                        playMediaInfo = playMediaInfo,
                         playerConfig = PlayerConfig(
                             seekBarActiveTrackColor = Color.Red,
                             seekBarInactiveTrackColor = Color.White,
@@ -166,7 +171,17 @@ private fun VideoPlayerContentView(currentVideo: VideoModel,
                             ),
                             fastForwardBackwardIconSize = 28.sdp,
                             controlTopPadding = 10.sdp
-                        )
+                        ),
+                        totalTimeFun = {
+                            Napier.d(tag = TAG) { "xbox.Player, totalTime: $it" }
+                            totalTime = it
+                        },
+                        currentTimeFun = {
+                            Napier.d(tag = TAG) { "xbox.Player, currentTime: $it" }
+                            currentTime = it
+                            //save history
+                           vodDetailModel.updateHistory(currentTime, totalTime)
+                        },
                     )
 
                     BackButtonNavBar {
@@ -175,6 +190,7 @@ private fun VideoPlayerContentView(currentVideo: VideoModel,
                 }
                 downLoadView(keepState, onFavoriteClick = { favorited ->
                     if(favorited){
+
                     } else {
 
                     }
@@ -200,7 +216,7 @@ private fun VideoPlayerContentView(currentVideo: VideoModel,
                                         vodDetailModel.getVodPlayerContent(site = vodSite, line!!.flag, episode!!.url)
                                     }
                                 } else {
-                                    Napier.i { "click same line" }
+                                    Napier.i(tag = TAG) { "click same line" }
                                 }
 
                             },
@@ -211,7 +227,7 @@ private fun VideoPlayerContentView(currentVideo: VideoModel,
                                         vodDetailModel.getVodPlayerContent(site = vodSite, line!!.flag, episode!!.url)
                                     }
                                 } else {
-                                    Napier.i { "click same episode" }
+                                    Napier.i(tag = TAG) { "click same episode" }
                                 }
                             })
                     }
@@ -385,7 +401,7 @@ fun MovieHeader(vod: Vod) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            /*"年份: 2023 地区: 中国 类型: 奇幻, 剧情"*/vod.vodYear+vod.vodArea+vod.typeName,
+            /*"年份: 2023 地区: 中国 类型: 奇幻, 剧情"*/vod.vodYear+" "+vod.vodArea+" "+vod.typeName,
             style = MaterialTheme.typography.bodyMedium
         )
         Text(/*"导演: 许宏宇"*/vod.vodDirector, style = MaterialTheme.typography.bodyMedium)
@@ -399,22 +415,22 @@ fun MovieHeader(vod: Vod) {
 @Composable
 private fun downLoadView(favorited:Boolean, onFavoriteClick: (checked: Boolean) -> Unit) {
     var isFavorited by remember { mutableStateOf(favorited) }
-    Napier.d { "#downLoadView, isFavorited:$isFavorited" }
+    Napier.d(tag = TAG) { "#downLoadView, isFavorited:$isFavorited" }
     Row(
         modifier = Modifier.padding(vertical =  12.sdp, horizontal = 4.sdp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(20.sdp)
     ) {
 
-        downloadItem(Icons.Outlined.Add, "Watchlist")
+        downloadItem(Icons.Default.Add, "播放列表")
 
-        downloadItem(Icons.Outlined.Share, "Share", size = 16.sdp)
+        downloadItem(Icons.Default.Share, "分享", size = 16.sdp)
 
-        downloadItem(Icons.Outlined.Download, "Download")
+        downloadItem(Icons.Default.Download, "下载")
 
         downloadItem(
             image = if (isFavorited) Icons.Default.Favorite else Icons.Outlined.Favorite,
-            title = if (isFavorited) "favorited" else "Unfavorited",
+            title = if (isFavorited) "已收藏" else "未收藏",
             size = 19.sdp,
             onClick = {
                 isFavorited = !isFavorited
@@ -474,7 +490,7 @@ fun MovieLines(lines:List<Flag>,
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                Napier.d { "Download Btn clicked." }
+                Napier.i(tag = TAG) { "Download Btn clicked." }
                 bottomSheetNavigator.hide()
                 bottomSheetNavigator.show(DownloadBottomSheet())
             },
@@ -496,7 +512,7 @@ fun MovieLines(lines:List<Flag>,
                     ) .clickable {
                         onClick(line)
                         selectedFlag = line.flag
-                         Napier.d { "#MovieLines, clicked line: $selectedFlag" }
+                         Napier.d(tag = TAG) { "#MovieLines, clicked line: $selectedFlag" }
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
@@ -518,9 +534,9 @@ fun MovieEpisodes(
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                Napier.d { "more btn clicked." }
+                Napier.d(tag = TAG) { "more btn clicked." }
                 bottomSheetNavigator.show(EpisodesBottomSheet(episodes, onClick = {
-                Napier.d { "clicked episode item:  ${it.name}" }
+                Napier.d(tag = TAG) { "clicked episode item:  ${it.name}" }
             })) },
             modifier = Modifier.padding(start = 8.dp)
         ) {
@@ -672,3 +688,5 @@ class EpisodesBottomSheet(private val episodes: List<Episode>, val onClick: (Epi
     }
 
 }
+
+const val TAG = "xbox.Player"

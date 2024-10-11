@@ -20,7 +20,9 @@ fun VideoPlayerView(
     modifier: Modifier = Modifier, // Modifier for the composable
     url1: String, // URL of the video
     playMediaInfo: PlayMediaInfo = PlayMediaInfo(url = url1),
-    playerConfig: PlayerConfig = PlayerConfig() // Configuration for the player
+    playerConfig: PlayerConfig = PlayerConfig(), // Configuration for the player
+    totalTimeFun: ((Int) -> Unit),
+    currentTimeFun: ((Int) -> Unit),
 ) {
     Napier.d { "#VideoPlayerView, refresh ui" }
 
@@ -54,7 +56,9 @@ fun VideoPlayerView(
             onShowControlsToggle = { showControls = showControls.not() }, // Toggle show/hide controls
             onChangeSeekbar = { isSeekbarSliding = it }, // Update seek bar sliding state
             isFullScreen = isFullScreen,
-            onFullScreenToggle = { isFullScreen = isFullScreen.not()}
+            onFullScreenToggle = { isFullScreen = isFullScreen.not()},
+            totalTimeFun = totalTimeFun,
+            currentTimeFun = currentTimeFun,
         )
     }
 }
