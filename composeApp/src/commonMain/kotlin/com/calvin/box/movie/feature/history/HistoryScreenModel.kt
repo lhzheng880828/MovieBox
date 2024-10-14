@@ -1,9 +1,13 @@
 package com.calvin.box.movie.feature.history
 
+import androidx.compose.runtime.Composable
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.calvin.box.movie.bean.History
 import com.calvin.box.movie.di.AppDataContainer
+import com.calvin.box.movie.navigation.LocalNavigation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
@@ -12,6 +16,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -24,20 +30,23 @@ class HistoryScreenModel(appData: AppDataContainer) : ScreenModel {
     private val movieRepo = appData.movieRepository
     private val vodRepo = appData.vodRepository
     //根据CID获取所有历史记录
-    val movies: StateFlow<List<History>> = movieRepo.getHistoryByCid(vodRepo.getConfig().id) // 传入 cid
-        .stateIn(
-            scope = screenModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = emptyList()
-        )
+
+
+    private val _movies = MutableStateFlow<List<History>>(emptyList())
+
+    val movies: StateFlow<List<History>> = _movies
+
+
+
+    init {
+         refreshHistoryList()
+    }
 
     private val _inSelectionMode = MutableStateFlow(false)
     val inSelectionMode: StateFlow<Boolean> = _inSelectionMode
 
     private val _selectedMovies = MutableStateFlow<Set<History>>(emptySet())
     val selectedMovies: StateFlow<Set<History>> = _selectedMovies
-
-
 
     fun exitSelectionMode() {
         _inSelectionMode.value = false
@@ -69,8 +78,8 @@ class HistoryScreenModel(appData: AppDataContainer) : ScreenModel {
             }
             // 等待所有删除任务完成
             deleteJobs.awaitAll()
-            refreshHistoryList() // 删除后刷新列表
             _selectedMovies.value = emptySet()
+            refreshHistoryList() // 删除后刷新列表
         }
     }
 
@@ -114,6 +123,10 @@ class HistoryScreenModel(appData: AppDataContainer) : ScreenModel {
 
     // 刷新历史记录列表
     private fun refreshHistoryList() {
-        // 重新获取历史记录的逻辑
+        movieRepo.getHistoryByCid(vodRepo.getConfig().id) // 传入 cid
+            .onEach { historyList ->
+                _movies.value = historyList // 更新 _movies 的值
+            }
+            .launchIn(screenModelScope)
     }
 }

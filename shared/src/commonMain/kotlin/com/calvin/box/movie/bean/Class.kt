@@ -25,9 +25,8 @@ import org.simpleframework.xml.Root
 import org.simpleframework.xml.Text
 */
 
-//@Root(strict = false)
 @Serializable
-data class Class @OptIn(ExperimentalSerializationApi::class) constructor(
+data class Class (
    @Serializable(with = TypeSerializer::class)
     @JsonNames("type id", "type_id")
     var typeId: String = "",
@@ -54,7 +53,7 @@ data class Class @OptIn(ExperimentalSerializationApi::class) constructor(
 
     var filter: Boolean  = false,
     var activated: Boolean = false
-) /*: Parcelable*/ {
+)  {
 
     companion object {
         val json = Json { ignoreUnknownKeys=true }

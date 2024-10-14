@@ -21,6 +21,7 @@ import com.calvin.box.movie.feature.settings.PersonalSetsModel
 import com.calvin.box.movie.feature.detail.VodDetailScreenModel
 import com.calvin.box.movie.feature.followed.KeepScreenModel
 import com.calvin.box.movie.feature.history.HistoryScreenModel
+import com.calvin.box.movie.feature.vod.VodListScreenModel
 
 import com.calvin.box.movie.HomeScreenModel
 
@@ -67,7 +68,6 @@ val dataModule = module {
     single {  LiveConfig.get() }
     single {  WallConfig.get() }
     single { AppDataContainer(getFactory(), getDataFactory(), get(), get(), get()) }
-
     single { DiceRoller() }
 
 }
@@ -92,7 +92,7 @@ val screenModelsModule = module {
     factoryOf( ::VodDetailScreenModel)
     factoryOf( ::KeepScreenModel)
     factoryOf( ::HistoryScreenModel)
-
+    factoryOf( ::VodListScreenModel)
 }
 
 

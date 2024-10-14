@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.wrapper.java)
     implementation(libs.android.retrofuture)
+    //implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
     //implementation(ext: 'aar', name: 'quickjs', group: 'fongmi', version: 'release')
     implementation(files("libs/quickjs.aar"))
 }

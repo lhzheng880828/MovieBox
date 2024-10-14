@@ -19,13 +19,13 @@ data class Keep(
     var key: String,
 
     @SerialName("siteName")
-    var siteName: String? = null,
+    var siteName: String = "",
 
     @SerialName("vodName")
-    var vodName: String? = null,
+    var vodName: String = "",
 
     @SerialName("vodPic")
-    var vodPic: String? = null,
+    var vodPic: String = "",
 
     @SerialName("createTime")
     var createTime: Long =  Clock.System.now().toEpochMilliseconds(),

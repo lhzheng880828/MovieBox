@@ -89,6 +89,12 @@ class IOSPlatform: Platform {
     override fun getPref(key: String, default: Any): Any {
         TODO("Not yet implemented")
     }
+    override fun getHostOkhttp(): Any {
+        TODO("Not yet implemented")
+    }
+    override fun navigateToLiveScreen(className: String) {
+        TODO("Not yet implemented")
+    }
 }
 
 actual fun getPlatform(): Platform = IOSPlatform()
@@ -227,7 +233,8 @@ class IosSpiderLoader: SpiderLoader {
 
     override suspend fun loadCategoryContent(
         homeSite: Site,
-        category: Class,
+        categoryType: String,
+        categoryExt: HashMap<String, String>,
         page: String,
         filter: Boolean,
     ):Result {

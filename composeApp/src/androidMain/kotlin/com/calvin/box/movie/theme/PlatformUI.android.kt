@@ -23,12 +23,8 @@ internal actual fun SystemAppearance(isDark: Boolean) {
 }
 
 @Composable
-internal actual fun BackHandler(inSelectionMode: Boolean, viewModel: HistoryScreenModel) {
-    androidx.activity.compose.BackHandler {
-        if (inSelectionMode) {
-            viewModel.exitSelectionMode()
-        }
-    }
+internal actual fun BackHandler(onBack: () -> Unit) {
+    androidx.activity.compose.BackHandler(onBack = onBack)
 }
 
 internal actual val DynamicColorsAvailable: Boolean

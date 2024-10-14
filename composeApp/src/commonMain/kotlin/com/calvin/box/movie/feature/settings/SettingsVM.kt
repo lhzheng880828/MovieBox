@@ -69,8 +69,10 @@ class SettingsViewModel(
     val updateStatus: StateFlow<UpdateStatus> = _updateStatus
 
     init {
+
         screenModelScope.launch {
             preferences.theme.flow.collect { theme ->
+                Napier.d(tag = TAG) { "xbox.settings, theme flow changed" }
                 val use = preferences.useDynamicColors.get()
                 val vodConfig = movieRepo.loadFirstConfig(Config.TYPE.VOD).flowOn(Dispatchers.IO).firstOrNull()
                 var vodUrl = ""
@@ -360,3 +362,5 @@ sealed interface SettingsUiEvent  {
 
     data class DelVodUrl(val vodUrl: String):SettingsUiEvent
 }
+
+const val TAG = "xbox.settings"

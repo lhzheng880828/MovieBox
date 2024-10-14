@@ -69,6 +69,7 @@ import com.calvin.box.movie.navigation.NavigationProvider
 import com.calvin.box.movie.navigation.ScreenContainerProvider
 import com.calvin.box.movie.theme.MyApplicationTheme
 import com.calvin.box.movie.ui.screens.tabsview.HomeTab
+import com.calvin.box.movie.ui.screens.tabsview.LiveTab
 import com.calvin.box.movie.ui.screens.tabsview.MusicTab
 import com.calvin.box.movie.ui.screens.tabsview.ReelsTab
 import com.calvin.box.movie.utility.BottomNavigationBarHeight
@@ -126,6 +127,7 @@ class HomeScreen : Screen {
                     //backgroundColor = MyApplicationTheme.colors.bottomTabBarColor,
                 ) {
                     TabNavigationItem(tab = HomeTab)
+                    TabNavigationItem(tab = LiveTab)
                     TabNavigationItem(tab = ReelsTab)
                     TabNavigationItem(tab = MusicTab)
                 }

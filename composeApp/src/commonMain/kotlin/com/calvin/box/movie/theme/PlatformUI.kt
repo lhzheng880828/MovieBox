@@ -13,4 +13,4 @@ internal expect val DynamicColorsAvailable: Boolean
 internal expect val OpenSourceLicenseAvailable: Boolean
 
 @Composable
-internal expect fun BackHandler(inSelectionMode: Boolean, viewModel: HistoryScreenModel)
+internal expect fun BackHandler(onBack: () -> Unit)

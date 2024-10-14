@@ -195,6 +195,18 @@ class AndroidPlatform : Platform {
     override fun getHostOkhttp(): Any {
        return  HostOkHttp.client()
     }
+
+    override fun navigateToLiveScreen(className: String) {
+        try {
+            val activityClass = Class.forName(className)
+            val intent = Intent(appContext, activityClass)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            appContext.startActivity(intent)
+        } catch (e: ClassNotFoundException) {
+            e.printStackTrace()
+            // 可以根据情况处理类未找到的情况
+        }
+    }
 }
 
 actual suspend fun FileDownloader.saveFile(channel: ByteReadChannel, savePath: String, totalSize: Long) {
@@ -401,7 +413,7 @@ class AndroidSpiderLoader: SpiderLoader {
         when (site.type) {
             3 -> {
                 val spider: Spider =  getSpider(site) as Spider
-                Napier.d { "#loadHomeContent, spider: $spider" }
+                Napier.d { "xbox.loadHomeContent, spider: $spider" }
                 val homeContent: String =
                     try {
                         spider.homeContent(true)
@@ -409,7 +421,7 @@ class AndroidSpiderLoader: SpiderLoader {
                         e.printStackTrace()
                         "{}"
                     }
-                Napier.d { "#loadHomeContent, homeContent:type3 $homeContent" }
+                Napier.d { "xbox.loadHomeContent, homeContent:type3 $homeContent" }
                 setRecent(site)
                 val result: Result = Result.fromJson(homeContent)
                 if (result.list.isNotEmpty()) return result
@@ -420,7 +432,7 @@ class AndroidSpiderLoader: SpiderLoader {
                         e.printStackTrace()
                         "{}"
                     }
-                Napier.d { "#loadHomeContent, homeVideoContent:type3 $homeVideoContent" }
+                Napier.d { "xbox.loadHomeContent, homeVideoContent:type3 $homeVideoContent" }
                 result.list = (Result.fromJson(homeVideoContent).list)
                 return result
             }
@@ -429,7 +441,7 @@ class AndroidSpiderLoader: SpiderLoader {
                     ArrayMap<String, String>()
                 params["filter"] = "true"
                 val homeContent: String = call(site, params, false)
-                SpiderDebug.log(homeContent)
+                Napier.d { "xbox.loadHomeContent, homeVideoContent:type4 $homeContent" }
                 return Result.fromJson(homeContent)
             }
             else -> {
@@ -441,7 +453,7 @@ class AndroidSpiderLoader: SpiderLoader {
                         e.printStackTrace()
                         "{}"
                     }
-                SpiderDebug.log(homeContent)
+                Napier.d { "xbox.loadHomeContent, homeVideoContent:type5 $homeContent" }
                 return fetchPic(site, Result.fromType(site.type, homeContent))
             }
         }
@@ -451,17 +463,19 @@ class AndroidSpiderLoader: SpiderLoader {
 
     override suspend fun loadCategoryContent(
         site: Site,
-        category: com.calvin.box.movie.bean.Class,
+        categoryType: String,
+        categoryExt: HashMap<String, String>,
+       // category: com.calvin.box.movie.bean.Class,
         page: String,
         filter: Boolean,
     ):Result {
-        val extend: HashMap<String, String>  = category.getExtend(false)
+        val extend: HashMap<String, String>  = categoryExt
         if (site.type == 3) {
             val spider: Spider = getSpider(site) as Spider
            // Napier.d { "#loadCategory, spider: $spider" }
-            val categoryContent = spider.categoryContent(category.typeId, page, filter, extend)
+            val categoryContent = spider.categoryContent(categoryType, page, filter, extend)
             //SpiderDebug.log(categoryContent)
-            Napier.d { "#loadcategoryContent, categoryContent:type3, classType: ${category.typeId},json:  $categoryContent" }
+            Napier.d { "#loadcategoryContent, categoryContent:type3, classType: $categoryType,json:  $categoryContent" }
             setRecent(site)
             return Result.fromJson(categoryContent)
         } else {
@@ -470,7 +484,7 @@ class AndroidSpiderLoader: SpiderLoader {
             if (site.type == 4) params["ext"] =
                 HostUtil.base64(Json.encodeToString(extend), HostUtil.URL_SAFE)
             params["ac"] = if (site.type == 0) "videolist" else "detail"
-            params["t"] = category.typeId
+            params["t"] = categoryType
             params["pg"] = page
             val categoryContent = call(site, params, true)
             Napier.d { "#loadcategoryContent, categoryContent:type_99 $categoryContent" }

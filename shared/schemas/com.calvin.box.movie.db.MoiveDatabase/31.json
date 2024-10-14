@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 31,
-    "identityHash": "860cfd1c608420bdf41d9bbe6294b057",
+    "identityHash": "14d2c80b97b52effe534b6159569a175",
     "entities": [
       {
         "tableName": "Keep",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `siteName` TEXT, `vodName` TEXT, `vodPic` TEXT, `createTime` INTEGER NOT NULL, `type` INTEGER NOT NULL, `cid` INTEGER NOT NULL, PRIMARY KEY(`key`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `siteName` TEXT NOT NULL, `vodName` TEXT NOT NULL, `vodPic` TEXT NOT NULL, `createTime` INTEGER NOT NULL, `type` INTEGER NOT NULL, `cid` INTEGER NOT NULL, PRIMARY KEY(`key`))",
         "fields": [
           {
             "fieldPath": "key",
@@ -17,17 +17,20 @@
           {
             "fieldPath": "siteName",
             "columnName": "siteName",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "vodName",
             "columnName": "vodName",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "vodPic",
             "columnName": "vodPic",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "createTime",
@@ -545,7 +548,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '860cfd1c608420bdf41d9bbe6294b057')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '14d2c80b97b52effe534b6159569a175')"
     ]
   }
 }

@@ -2,10 +2,13 @@ package com.calvin.box.movie.feature.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.calvin.box.movie.bean.Site
 import kotlinx.coroutines.runBlocking
 
@@ -47,7 +51,7 @@ fun VodSitesDialog(
     onSiteSelected: (String) -> Unit,
     showSearchBar: Boolean = true,
     showChange: Boolean = true,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     var keyword by remember { mutableStateOf("") }
     var filteredSites by remember { mutableStateOf(sites) }
@@ -62,6 +66,10 @@ fun VodSitesDialog(
             sites.filter { it.name.contains(keyword, ignoreCase = true) }
         }
     }
+    BoxWithConstraints {
+        val maxHeight = maxHeight * 2 / 3
+        val maxWidth = maxWidth * 0.8f
+
     // Dialog 构建
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -146,8 +154,14 @@ fun VodSitesDialog(
             TextButton(onClick = onDismiss) {
                 Text("关闭")
             }
-        }
+        },
+        properties = DialogProperties(usePlatformDefaultWidth = false), // 禁用默认宽度限制
+        modifier = Modifier
+            .heightIn(max = maxHeight)
+            .widthIn(max = maxWidth)
+            .padding(8.dp)
     )
+    }
 }
 
 @Composable

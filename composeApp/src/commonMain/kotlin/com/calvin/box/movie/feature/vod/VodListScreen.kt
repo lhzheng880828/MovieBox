@@ -24,15 +24,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
+import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.calvin.box.movie.api.config.VodConfig
-import com.calvin.box.movie.bean.Class
 import com.calvin.box.movie.bean.Vod
 import com.calvin.box.movie.model.VideoModel
 import com.calvin.box.movie.navigation.LocalNavigation
 import com.calvin.box.movie.screens.EmptyScreenContent
-import com.calvin.box.movie.ui.screens.tabsview.HomeTabViewModel
 import com.calvin.box.movie.utils.UrlProcessor
 import io.github.aakira.napier.Napier
 import io.kamel.core.utils.cacheControl
@@ -44,62 +43,76 @@ import moviebox.composeapp.generated.resources.Res
 import moviebox.composeapp.generated.resources.ic_home_tab
 import org.jetbrains.compose.resources.painterResource
 
-data class VodListScreen(val category: Class, val viewModel: HomeTabViewModel) : Tab {
 
-    private val objectsFlow =  viewModel.loadPagingDataFLow(category)
+data class VodListScreen(
+    val categoryType: String, val categoryName: String,
+    val categoryExt: HashMap<String, String> = HashMap(),
 
+) : Tab {
     @Composable
     override fun Content() {
-        val navigator = LocalNavigation.current
-        val objects = objectsFlow.collectAsLazyPagingItems()
-        Napier.d { "invoke vodListScreen content" }
-        AnimatedContent(objects.itemCount>0) { objectsAvailable ->
-            if (objectsAvailable) {
-                ObjectGrid(
-                    objects = objects,
-                    onObjectClick = { vodObj ->
+        Napier.d(tag = TAG) { " categoryType: $categoryType, categoryName: $categoryName"  }
+        val viewModel: VodListScreenModel = getScreenModel()
+        PagingView(viewModel, categoryType, categoryExt)
 
-                        val homeSiteKey = VodConfig.get().getHome()?.key
-                        val isIndexs =  VodConfig.get().getHome()?.isIndexs()
-                        val isFolder = vodObj.isFolder()
-                        val isManga = vodObj.isManga()
-                        val action = vodObj.action
-                        Napier.d { "vod item clicked, homeSiteKey:$homeSiteKey, isIndexs: $isIndexs," +
-                                " isFolder: $isFolder, isManga:$isManga, action: $action" }
-
-                        val videoModel = VideoModel(id = vodObj.vodId, description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
-                            subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName, siteKey = homeSiteKey!!)
-                        navigator.goToVideoPlayerScreen(videoModel)
-
-                        if(action.isNotEmpty()){
-
-                        } else if(isFolder){
-
-                        } else {
-                            if(isIndexs == true){
-
-                            } else if(isManga){
-                                navigator.goToDetailScreen(videoModel)
-                            } else {
-                                navigator.goToVideoPlayerScreen(videoModel)
-                            }
-
-                        }
-
-                    }
-                )
-            } else {
-                EmptyScreenContent(Modifier.fillMaxSize())
-            }
-        }
     }
 
     override val options: TabOptions
         @Composable
         get() {
             val image = painterResource(Res.drawable.ic_home_tab)
-            return remember { TabOptions(index = 2u, title = category.typeName, icon = image) }
+            return remember { TabOptions(index = 2u, title = categoryName, icon = image) }
         }
+}
+
+@Composable
+private fun PagingView(viewModel: VodListScreenModel,
+                       categoryType: String,
+                        categoryExt: HashMap<String, String> = HashMap()){
+    val navigator = LocalNavigation.current
+    val objects = viewModel.loadPagingDataFLow(categoryType,categoryExt).collectAsLazyPagingItems()
+    Napier.d(tag = TAG) { " refresh vod list: objSize: ${objects.itemCount}"  }
+    // test code
+    // val objects = flow { emit(PagingData.empty<Vod>())  }.collectAsLazyPagingItems()
+    AnimatedContent(objects.itemCount>0) { objectsAvailable ->
+        if (objectsAvailable) {
+            ObjectGrid(
+                objects = objects,
+                onObjectClick = { vodObj ->
+
+                    val homeSiteKey = VodConfig.get().getHome()?.key
+                    val isIndexs =  VodConfig.get().getHome()?.isIndexs()
+                    val isFolder = vodObj.isFolder()
+                    val isManga = vodObj.isManga()
+                    val action = vodObj.action
+                    Napier.d(tag = TAG) { "vod item clicked, homeSiteKey:$homeSiteKey, isIndexs: $isIndexs," +
+                            " isFolder: $isFolder, isManga:$isManga, action: $action" }
+
+                    val videoModel = VideoModel(id = vodObj.vodId, description = vodObj.vodTag, sources = vodObj.vodPlayUrl,
+                        subtitle = "", thumb = vodObj.vodPic, title = vodObj.vodName, siteKey = homeSiteKey!!)
+                    navigator.goToVideoPlayerScreen(videoModel)
+
+                    if(action.isNotEmpty()){
+
+                    } else if(isFolder){
+
+                    } else {
+                        if(isIndexs == true){
+
+                        } else if(isManga){
+                            navigator.goToDetailScreen(videoModel)
+                        } else {
+                            navigator.goToVideoPlayerScreen(videoModel)
+                        }
+
+                    }
+
+                }
+            )
+        } else {
+            EmptyScreenContent(Modifier.fillMaxSize())
+        }
+    }
 }
 
 @Composable
@@ -133,7 +146,7 @@ private fun ObjectFrame(
 ) {
     Column(
         modifier
-            .padding(8.dp)
+            .padding(2.dp)
             .clickable { onClick() }
     ) {
         val url = obj.vodPic
@@ -153,16 +166,14 @@ private fun ObjectFrame(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1f)
+                .aspectRatio(3/4f)
                 .background(Color.LightGray),
         )
-
         Spacer(Modifier.height(2.dp))
-
         Text(obj.vodName, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), maxLines = 2)
         //Text(obj.vodTag, style = MaterialTheme.typography.labelMedium)
         //Text(obj.vodYear, style = MaterialTheme.typography.labelMedium)
     }
 }
 
-private const val TAG = "VodListScreen"
+private const val TAG = "xbox.VodListScreen"

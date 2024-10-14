@@ -137,14 +137,23 @@ class MovieDataRepository (
         return api.download(dev, name)
     }
 
-    suspend fun loadHomeContent(site: Site):Result{
-       // Napier.d { "#loadHomeContent invoke, site: $site" }
-        return spiderLoader.loadHomeContent(site)
+    private var _homeResult:Result? = null
+
+    //这里做一个主页缓存
+    suspend fun loadHomeContent(site: Site):Result {
+        val homeRes = spiderLoader.loadHomeContent(site)
+        _homeResult = homeRes
+        return homeRes
     }
 
-    suspend fun loadCategoryContent(homeSite: Site, category: Class, pageNum:String):Result{
-        Napier.d { "#loadCategoryContent invoke, site: $homeSite, category: $category, pageNum: $pageNum" }
-        return spiderLoader.loadCategoryContent(homeSite, category, page = pageNum)
+    fun loadHomeContentFromCache(): Result? {
+        Napier.i { "#loadHomeContentFromCache invoke" }
+        return _homeResult
+    }
+
+    suspend fun loadCategoryContent(homeSite: Site, categoryType: String, categoryExt: HashMap<String, String>, pageNum:String):Result{
+        Napier.d { "#loadCategoryContent invoke, site: $homeSite, categoryType: $categoryType, pageNum: $pageNum" }
+        return spiderLoader.loadCategoryContent(homeSite, categoryType,categoryExt , page = pageNum)
     }
 
     suspend fun loadVodDetailContent(site:Site, vodId:String):Result{

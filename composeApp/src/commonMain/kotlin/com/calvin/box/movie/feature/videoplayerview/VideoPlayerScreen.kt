@@ -648,6 +648,7 @@ class DownloadBottomSheet:Screen {
 
 }
 
+//[Android Jetpack Compose 实现一个电视剧选集界面] https://blog.csdn.net/zxj2589/article/details/139605000
 class EpisodesBottomSheet(private val episodes: List<Episode>, val onClick: (Episode) -> Unit):Screen {
     @Composable
     override fun Content() {

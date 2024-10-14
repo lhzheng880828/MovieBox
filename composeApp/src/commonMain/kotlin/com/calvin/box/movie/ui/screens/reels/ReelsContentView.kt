@@ -24,6 +24,8 @@ fun ReelsContentView() {
             isSpeedControlEnabled = false,
             isFullScreenEnabled = false,
             isScreenLockEnabled = false
-        )
+        ),
+        totalTimeFun = {},
+        currentTimeFun = {},
     )
 }

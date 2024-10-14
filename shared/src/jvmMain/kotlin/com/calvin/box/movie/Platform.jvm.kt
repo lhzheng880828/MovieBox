@@ -72,6 +72,14 @@ class JVMPlatform: Platform {
         TODO("Not yet implemented")
     }
 
+    override fun hasCaption(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun isExoPlayer(): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun setLanguage() {
         TODO("Not yet implemented")
     }
@@ -85,6 +93,14 @@ class JVMPlatform: Platform {
     }
 
     override fun getPref(key: String, default: Any): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun getHostOkhttp(): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun navigateToLiveScreen(className: String) {
         TODO("Not yet implemented")
     }
 }
@@ -218,7 +234,8 @@ class JvmSpiderLoader: SpiderLoader {
 
     override suspend fun loadCategoryContent(
         homeSite: Site,
-        category: com.calvin.box.movie.bean.Class,
+        categoryType: String,
+        categoryExt: HashMap<String, String>,
         page: String,
         filter: Boolean,
     ):Result {

@@ -61,6 +61,8 @@ interface Platform {
 
     fun getHostOkhttp():Any
 
+    fun navigateToLiveScreen(className: String)
+
 }
 
 expect fun getPlatform(): Platform
@@ -134,7 +136,7 @@ interface SpiderLoader{
 
     suspend fun loadHomeContent(site:Site):Result
 
-    suspend fun loadCategoryContent(site:Site, category:Class, page:String = "1", filter:Boolean = true):Result
+    suspend fun loadCategoryContent(site:Site, categoryType: String, categoryExt: HashMap<String, String>, page:String = "1", filter:Boolean = true):Result
 
     suspend fun loadDetailContent(site:Site, vodId:String):Result
 

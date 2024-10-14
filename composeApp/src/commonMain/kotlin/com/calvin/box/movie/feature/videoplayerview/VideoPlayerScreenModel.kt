@@ -168,6 +168,7 @@ class VideoPlayerViewModel(appDataContainer: AppDataContainer) :ScreenModel{
             key =  historyKey
             cid = configId
             vodName = vod.vodName
+            vodPic = vod.vodPic
             findEpisode(vod.vodFlags)
             speed = runBlocking { pref.playSpeed.get() }
         }

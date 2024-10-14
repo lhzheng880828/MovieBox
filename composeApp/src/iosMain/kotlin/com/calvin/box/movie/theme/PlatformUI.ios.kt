@@ -29,7 +29,7 @@ actual fun SystemAppearance(isDark:Boolean) {
 }
 
 @Composable
-actual fun BackHandler(inSelectionMode: Boolean, viewModel: HistoryScreenModel) {
+actual fun BackHandler(onBack: () -> Unit) {
 
 
 }

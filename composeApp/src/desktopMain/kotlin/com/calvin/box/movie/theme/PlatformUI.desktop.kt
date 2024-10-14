@@ -11,7 +11,7 @@ internal actual fun SystemAppearance(isDark: Boolean) {
 }
 
 @Composable
-internal actual fun BackHandler(inSelectionMode: Boolean, viewModel: HistoryScreenModel) {
+internal actual fun BackHandler(onBack: () -> Unit) {
 
 
 }

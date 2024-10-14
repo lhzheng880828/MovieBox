@@ -125,7 +125,6 @@ class VodConfig {
 
     private fun checkJson(jsonObject: JsonObject, callback: Callback?) {
         Napier.d { "#checkJson invoke" }
-
         if (jsonObject.containsKey("msg") && callback != null) {
             callback.error(jsonObject["msg"].toString())
         } else if (jsonObject.containsKey("urls")) {
@@ -154,7 +153,7 @@ class VodConfig {
             initOther(jsonObject)
             if (loadLive && jsonObject.containsKey("lives")) initLive(jsonObject)
             val spiderStr = Json.safeString(jsonObject, "spider")
-            home?.jar = spiderStr
+            sites.onEach { it.jar = spiderStr }
             spiderLoader.parseJar("", spiderStr)
             config.logo(Json.safeString(jsonObject, "logo"))
             config.json(jsonObject.toString()).update()

@@ -27,13 +27,20 @@ import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import com.calvin.box.movie.bean.History
+import com.calvin.box.movie.navigation.LocalNavigation
 import com.calvin.box.movie.theme.BackHandler
+import com.calvin.box.movie.utils.UrlProcessor
 import io.github.aakira.napier.Napier
+import io.kamel.core.utils.cacheControl
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import io.ktor.client.request.header
+import io.ktor.client.utils.CacheControl
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.InternalResourceApi
 
 /*
@@ -47,14 +54,24 @@ class HistoryScreen:Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
+        val enableSync = false
+        val nv = LocalNavigation.current
         val viewModel: HistoryScreenModel = getScreenModel()
         val movies by viewModel.movies.collectAsState()
         val inSelectionMode by viewModel.inSelectionMode.collectAsState()
         val selectedMovies by viewModel.selectedMovies.collectAsState()
         var showDeleteDialog by remember { mutableStateOf(false) }
-        BackHandler(inSelectionMode, viewModel)
-
+        BackHandler{
+            if (inSelectionMode) {
+                viewModel.exitSelectionMode()
+            } else {
+                nv.back()
+            }
+        }
+        val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = { Text("最近观看", fontSize = 24.sp) },
@@ -69,19 +86,26 @@ class HistoryScreen:Screen {
                             IconButton(onClick = {
                                 if (selectedMovies.isNotEmpty()) {
                                     showDeleteDialog = true
+                                }else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("没有选中的观看历史")
+                                    }
                                 }
                             }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Delete")
                             }
                         } else {
-                            IconButton(onClick = {
-                                Napier.d { "xbox.history, sync clicked"}
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Sync,
-                                    contentDescription = "Sync Button"
-                                )
+                            if(enableSync){
+                                IconButton(onClick = {
+                                    Napier.d { "xbox.history, sync clicked"}
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Sync,
+                                        contentDescription = "Sync Button"
+                                    )
+                                }
                             }
+
                             IconButton(onClick = {
                                 Napier.d { "xbox.history, delete Btn clicked" }
                                 viewModel.toggleDeleteMode()
@@ -105,6 +129,9 @@ class HistoryScreen:Screen {
                 inSelectionMode = inSelectionMode,
                 selectedItems = selectedMovies,
                 onClickItem = { viewModel.toggleSelectItem(it) },
+                onRadioBtnClick = { _, item ->
+                    viewModel.toggleSelectItem(item)
+                },
                 modifier = Modifier.padding(innerPadding)
             )
 
@@ -113,6 +140,7 @@ class HistoryScreen:Screen {
                     onConfirm = {
                         viewModel.deleteSelectedItems()
                         showDeleteDialog = false
+                        viewModel.toggleDeleteMode()
                     },
                     onDismiss = { showDeleteDialog = false }
                 )
@@ -129,12 +157,13 @@ fun MovieGrid(movies: List<History>,
               inSelectionMode: Boolean,
               selectedItems: Set<History>,
               onClickItem: (History) -> Unit,
+              onRadioBtnClick: (Boolean, History) -> Unit,
               modifier: Modifier) {
     Napier.d { "xbox.history, refresh history grid, inSelectionMode:$inSelectionMode" }
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        contentPadding = PaddingValues(8.dp),
-        modifier = modifier
+        columns = GridCells.Adaptive(100.dp),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(4.dp),
     ) {
         items(movies) { item ->
             val isSelected = selectedItems.contains(item)
@@ -148,6 +177,9 @@ fun MovieGrid(movies: List<History>,
                     } else {
                         onClickItem(item)
                     }
+                },
+                onRadioBtnClick =  {
+                    onRadioBtnClick(it, item)
                 }
             )
         }
@@ -160,13 +192,13 @@ fun MovieItemView(
     item: History,
     selected: Boolean,
     inSelectionMode: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onRadioBtnClick:(Boolean)->Unit,
 ) {
     Box(
         modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(), // 确保 Box 占满整个宽度
-        contentAlignment = Alignment.Center // 将内容居中
+            .padding(4.dp)
+            .fillMaxWidth(),
     ) {
         val transition = updateTransition(targetState = selected, label = "selected")
 
@@ -178,18 +210,30 @@ fun MovieItemView(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.clickable { onClick() }
         ) {
+            val url = item.vodPic
+            val (processedUrl, headers) = remember(url) { UrlProcessor.processUrl(url) }
             KamelImage(
-                resource = asyncPainterResource(item.vodPic),
+                resource = asyncPainterResource(data = processedUrl){
+                    requestBuilder { // this: HttpRequestBuilder
+                        for(h in headers){
+                            header(h.key, h.value)
+                        }
+                        // parameter("Key", "Value")
+                        cacheControl(CacheControl.MAX_AGE)
+                    }
+                },
                 contentDescription = item.vodName,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .aspectRatio(3/4f)
+                    //.background(Color.LightGray)
                     .clip(RoundedCornerShape(roundedCornerShape)),
                 onLoading = { /* 加载状态的UI */ },
                 onFailure = { /* 加载失败的UI */ }
             )
-            BasicText(item.vodName, modifier = Modifier.padding(top = 8.dp))
-            BasicText(item.siteName, modifier = Modifier.padding(top = 8.dp))
+            BasicText(item.vodName, modifier = Modifier.padding(top = 4.dp))
+            BasicText(item.siteName, modifier = Modifier.padding(top = 4.dp))
 
         }
 
@@ -205,6 +249,9 @@ fun MovieItemView(
                         .border(2.dp, bgColor, CircleShape)
                         .clip(CircleShape)
                         .background(bgColor)
+                        .clickable {
+                            onRadioBtnClick(selected)
+                        }
                 )
             } else {
                 Icon(
@@ -212,6 +259,9 @@ fun MovieItemView(
                     tint = Color.White.copy(alpha = 0.7f),
                     contentDescription = null,
                     modifier = Modifier.padding(6.dp)
+                        .clickable {
+                        onRadioBtnClick(selected)
+                    }
                 )
             }
         }
