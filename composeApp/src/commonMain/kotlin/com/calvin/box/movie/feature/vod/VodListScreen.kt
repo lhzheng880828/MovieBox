@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.paging.PagingData
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import cafe.adriel.voyager.koin.getScreenModel
@@ -39,6 +40,7 @@ import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
 import io.ktor.client.request.header
 import io.ktor.client.utils.CacheControl
+import kotlinx.coroutines.flow.Flow
 import moviebox.composeapp.generated.resources.Res
 import moviebox.composeapp.generated.resources.ic_home_tab
 import org.jetbrains.compose.resources.painterResource
@@ -53,7 +55,8 @@ data class VodListScreen(
     override fun Content() {
         Napier.d(tag = TAG) { " categoryType: $categoryType, categoryName: $categoryName"  }
         val viewModel: VodListScreenModel = getScreenModel()
-        PagingView(viewModel, categoryType, categoryExt)
+        val pagingFlow = viewModel.loadPagingDataFLow(categoryType,categoryExt)
+        PagingView(pagingFlow)
 
     }
 
@@ -66,11 +69,9 @@ data class VodListScreen(
 }
 
 @Composable
-private fun PagingView(viewModel: VodListScreenModel,
-                       categoryType: String,
-                        categoryExt: HashMap<String, String> = HashMap()){
+private fun PagingView(pagingFlow: Flow<PagingData<Vod>>){
     val navigator = LocalNavigation.current
-    val objects = viewModel.loadPagingDataFLow(categoryType,categoryExt).collectAsLazyPagingItems()
+    val objects = pagingFlow.collectAsLazyPagingItems()
     Napier.d(tag = TAG) { " refresh vod list: objSize: ${objects.itemCount}"  }
     // test code
     // val objects = flow { emit(PagingData.empty<Vod>())  }.collectAsLazyPagingItems()

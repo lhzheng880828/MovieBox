@@ -465,7 +465,6 @@ class AndroidSpiderLoader: SpiderLoader {
         site: Site,
         categoryType: String,
         categoryExt: HashMap<String, String>,
-       // category: com.calvin.box.movie.bean.Class,
         page: String,
         filter: Boolean,
     ):Result {
