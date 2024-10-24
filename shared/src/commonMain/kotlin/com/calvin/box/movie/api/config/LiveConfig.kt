@@ -1,5 +1,11 @@
 package com.calvin.box.movie.api.config
 
+/*import com.fongmi.android.tv.R
+import com.fongmi.android.tv.Setting
+import com.fongmi.android.tv.ui.activity.LiveActivity
+import com.fongmi.android.tv.utils.Notify*/
+
+import Decoder
 import com.calvin.box.movie.App
 import com.calvin.box.movie.api.LiveParser
 import com.calvin.box.movie.bean.*
@@ -8,16 +14,14 @@ import com.calvin.box.movie.di.AppDataContainer
 import com.calvin.box.movie.getPlatform
 import com.calvin.box.movie.impl.Callback
 import com.calvin.box.movie.pref.KEY_KEEP
-import kotlinx.serialization.json.JsonObject
-import kotlin.jvm.JvmStatic
-
-/*import com.fongmi.android.tv.R
-import com.fongmi.android.tv.Setting
-import com.fongmi.android.tv.ui.activity.LiveActivity
-import com.fongmi.android.tv.utils.Notify*/
 import com.calvin.box.movie.utils.Json
-
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlin.jvm.JvmStatic
 
 class LiveConfig private constructor() {
 
@@ -55,16 +59,25 @@ class LiveConfig private constructor() {
         fun load(config: Config, callback: Callback) {
             get().clear().config(config).load(callback)
         }
+
+        const val TAG = "xbox.LiveConfig"
     }
 
     private object Loader {
         val INSTANCE = LiveConfig()
     }
 
+    private lateinit var appData: AppDataContainer
+
     fun init(appDataContainer: AppDataContainer): LiveConfig {
-        this.home = null
+        appData = appDataContainer
         Config.setDatabase(appDataContainer)
-        return config(Config.live())
+        //return config(Config.live())
+        val testUrl = "https://live.fanmingming.com/tv/m3u/ipv6.m3u"
+        config = Config.live()
+        config.url(testUrl)
+        config.name("IPV6")
+        return this
     }
 
     fun config(config: Config): LiveConfig {
@@ -97,15 +110,15 @@ class LiveConfig private constructor() {
     }
 
     private fun loadConfig(callback: Callback) {
+        if(config.url.isEmpty()){
+            callback.error("请先配置直播地址")
+            return
+        }
         try {
             val text = Decoder.getJson(config.url)
             parseConfig(text, callback)
         } catch (e: Throwable) {
-            if (config.url.isEmpty()) {
-                App.post { callback.error("") }
-            } else {
-                App.post { callback.error(/*Notify.getError(R.string.error_config_get, e)*/"get config error") }
-            }
+            callback.error(/*Notify.getError(R.string.error_config_get, e)*/"获取直播配置出错")
             e.printStackTrace()
         }
     }
@@ -119,10 +132,11 @@ class LiveConfig private constructor() {
     }
 
     private fun parseText(text: String, callback: Callback) {
+        Napier.d(tag = TAG) { "parseText invoke" }
         val live = Live(config.url).sync()
         LiveParser.text(live, text)
-        getLives().remove(live)
-        getLives().add(live)
+        lives.remove(live)
+        lives.add(live)
         setHome(live, true)
         callback.success()
     }
@@ -179,8 +193,14 @@ class LiveConfig private constructor() {
     }
 
     fun setKeep(channel: Channel) {
-       /* if (home == null || channel.group.isHidden || channel.urls.isEmpty()) return
-        Setting.putKeep("${home?.name}${AppDatabase.SYMBOL}${channel.group.name}${AppDatabase.SYMBOL}${channel.name}${AppDatabase.SYMBOL}${channel.current}")*/
+        if(home==null) return
+        if ( channel.group.isHidden() || channel.urls.isEmpty()) return
+        val prefApi = appData.prefApi
+        val liveKeep = home!!.name + MoiveDatabase.SYMBOL + channel.group.name + MoiveDatabase.SYMBOL +
+                channel.name + MoiveDatabase.SYMBOL + channel.getCurrent()
+        runBlocking(context = Dispatchers.IO){
+            prefApi.keep.set(liveKeep)
+        }
     }
 
     fun setKeep(items: List<Group>) {
@@ -247,5 +267,6 @@ class LiveConfig private constructor() {
             App.post { bootLive() }
         }*/
     }
+
 }
 

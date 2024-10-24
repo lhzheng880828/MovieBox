@@ -26,7 +26,7 @@ data class Channel(
     @SerialName("parse") var parse: Int? = null,
     @SerialName("drm") var drm: Drm? = null,
     var selected: Boolean = false,
-    var group: Group? = null,
+    var group: Group = Group(),
     var url: String =  "",
     var msg: String? = null,
     var data: Epg? = null,
@@ -106,6 +106,7 @@ data class Channel(
         this.group = group
         return this
     }
+
 
     fun live(live: Live) {
         if (live.ua.isNotEmpty() && ua.isEmpty()) ua = live.ua

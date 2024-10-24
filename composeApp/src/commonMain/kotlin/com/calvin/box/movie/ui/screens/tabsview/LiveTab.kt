@@ -8,7 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
-import com.calvin.box.movie.feature.live.LiveTvScreen
+import com.calvin.box.movie.feature.live.LiveInsertScreen
+import com.calvin.box.movie.feature.live.WrapLiveInsertScreen
 import com.calvin.box.movie.getPlatform
 import com.calvin.box.movie.utility.BottomNavigationBarHeight
 import moviebox.composeapp.generated.resources.Res
@@ -16,7 +17,7 @@ import moviebox.composeapp.generated.resources.ic_music_tab
 import org.jetbrains.compose.resources.painterResource
 
 internal object LiveTab: Tab {
-    private const val singleActivity = true
+    private const val singleActivity = false
     @Composable
     override fun Content() {
         Box(modifier = Modifier
@@ -26,7 +27,7 @@ internal object LiveTab: Tab {
            if(singleActivity){
                getPlatform().navigateToLiveScreen("com.calvin.box.movie.LiveTvActivity")
            } else {
-               LiveTvScreen()
+               WrapLiveInsertScreen().Content()
            }
 
         }

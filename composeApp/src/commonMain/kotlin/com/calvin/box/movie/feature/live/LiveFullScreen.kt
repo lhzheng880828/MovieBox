@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +29,7 @@ import androidx.compose.ui.unit.dp
  *Date:2024/10/17
  */
 @Composable
-fun LiveTvScreen( ) {
+fun LiveFullScreen( ) {
 
     var selectedNavItem by remember { mutableStateOf("央视频道") }
     var selectedSubMenu by remember { mutableStateOf("") }

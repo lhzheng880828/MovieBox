@@ -26,7 +26,7 @@ class LiveParser {
             return matchResult?.groupValues?.get(1) ?: ""
         }
 
-        suspend fun start(live: Live) {
+        fun start(live: Live) {
             if (live.groups.isNotEmpty()) return
             val text = getText(live)
             when (live.type) {
@@ -214,12 +214,12 @@ class LiveParser {
             referer = line.split("(?i)referer=")[1].trim().replace("\"", "")
         }
 
-        private fun parse(line: String) {
-            parse = line.split("parse=")[1].trim().toIntOrNull()
-        }
-
         private fun click(line: String) {
             click = line.split("click=")[1].trim()
+        }
+
+        private fun parse(line: String) {
+            parse = line.split("parse=")[1].trim().toIntOrNull()
         }
 
         private fun player(line: String) {

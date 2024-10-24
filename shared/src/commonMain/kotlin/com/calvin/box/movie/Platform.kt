@@ -32,6 +32,8 @@ interface Platform {
 
     fun getUriQuery(url:String):String?
 
+    fun getQueryParameter(url: String, key: String): String?
+
     fun url2FileName(url: String):String
 
     fun writeStringToFile(fileName: String, content: String)

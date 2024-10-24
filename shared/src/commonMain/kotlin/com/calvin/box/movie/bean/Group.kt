@@ -85,4 +85,8 @@ data class Group(
     fun isKeep():Boolean{
         return name == "Keep"
     }
+
+    fun isHidden(): Boolean {
+        return pass.isNotEmpty()
+    }
 }

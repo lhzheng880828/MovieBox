@@ -428,6 +428,7 @@ interface BasePreference {
 
     val doh: Preference<String>
     val proxy: Preference<String>
+    //直播收藏
     val keep: Preference<String>
     val keyword: Preference<String>
     val hot: Preference<String>

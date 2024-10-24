@@ -504,12 +504,15 @@ fun SiteItem(
             .fillMaxWidth()
             .clickable { onSiteSelected(site) }
             .padding(vertical = 8.dp, horizontal = 4.dp)
-            .background(color =  if(isSelected) MaterialTheme.colorScheme.primary else  MaterialTheme.colorScheme.surface)
     ) {
         Text(
             text = site.siteName,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
+            modifier = Modifier.background(
+                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
+            ),
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
         )
     }
 }

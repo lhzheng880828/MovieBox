@@ -17,6 +17,7 @@ package com.calvin.box.movie.network
 
 import com.calvin.box.movie.bean.ApkVersion
 import com.calvin.box.movie.bean.DownloadStatus
+import com.calvin.box.movie.bean.Epg
 import com.calvin.box.movie.bean.Hot
 import com.calvin.box.movie.bean.Suggest
 import com.calvin.box.movie.bean.SuggestTwo
@@ -48,6 +49,7 @@ interface MoiveApi {
     suspend fun getSuggest(keyword: String): Flow<List<String>>
     suspend fun getApkVersion(dev:Boolean, name:String):ApkVersion
     fun download(dev: Boolean, name: String ): Flow<DownloadStatus>
+    suspend fun getEpg(url: String):Epg
 }
 
 class MoiveNetworkApi(private val client: HttpClient, private val apiUrl: String) : MoiveApi {
@@ -166,6 +168,19 @@ class MoiveNetworkApi(private val client: HttpClient, private val apiUrl: String
                 //downloader.cancel()  // 假设 `downloader` 有取消方法，确保下载被中断
             }
         }
+
+    override suspend fun getEpg(url: String): Epg {
+        return try {
+            client.get(url) {
+            }.body()
+        } catch (e: Exception) {
+            //if (e is CancellationException) throw e
+            e.printStackTrace()
+            val empty = Epg()
+            return empty
+        }
+    }
+
 }
 
 

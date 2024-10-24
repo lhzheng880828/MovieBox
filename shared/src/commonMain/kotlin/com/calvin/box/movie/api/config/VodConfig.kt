@@ -27,7 +27,7 @@ class VodConfig {
     private var flags: MutableList<String> = mutableListOf()
     private var ads: MutableList<String>  = mutableListOf()
 
-    private var loadLive = false
+    private var loadLive = true
     private lateinit var config: Config
     private var parse: Parse? = null
     private var wall: String  =  ""
@@ -58,7 +58,7 @@ class VodConfig {
         this.sites =  mutableListOf()
         this.flags =  mutableListOf()
         this.parses =  mutableListOf()
-        this.loadLive = false
+        //this.loadLive = false
         return this
     }
 

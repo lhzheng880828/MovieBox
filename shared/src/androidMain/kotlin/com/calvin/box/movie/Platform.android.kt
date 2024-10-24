@@ -87,6 +87,10 @@ class AndroidPlatform : Platform {
          return Uri.parse(url).query
     }
 
+    override fun getQueryParameter(url: String, key: String): String? {
+        return Uri.parse(url).getQueryParameter(key)
+    }
+
     override fun url2FileName(url: String): String {
          return if (url.startsWith("file")) {
             File(url).name

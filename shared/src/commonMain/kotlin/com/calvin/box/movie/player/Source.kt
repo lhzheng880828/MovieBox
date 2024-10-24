@@ -1,13 +1,10 @@
 package com.calvin.box.movie.player
 
 import com.calvin.box.movie.UrlExtractor
-import com.calvin.box.movie.bean.Episode
+import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Flag
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.getUrlExtractor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 
 /*
  *Author:cl
@@ -37,6 +34,14 @@ object  Source {
         return getPlatformUrlExtractor().fetch(result)
     }
 
+    fun fetch(channel: Channel): String {
+       /* val url: String = channel.getCurrent().split("\\$").get(0)
+        val extractor: com.fongmi.android.tv.player.Source.Extractor = getExtractor(url)
+        if (extractor != null) channel.setParse(0)
+        if (extractor is Video) channel.setParse(1)
+        return if (extractor == null) url else extractor.fetch(url)*/
+       return getPlatformUrlExtractor().fetch(channel)
+    }
 
 
     fun parse(flags: List<Flag>) {

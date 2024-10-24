@@ -2,13 +2,18 @@ package com.calvin.box.movie
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.calvin.box.movie.api.LiveParser
+import com.calvin.box.movie.api.config.LiveConfig
 import com.calvin.box.movie.bean.ApkVersion
-import com.calvin.box.movie.bean.Class
+import com.calvin.box.movie.bean.Channel
 import com.calvin.box.movie.bean.Config
 import com.calvin.box.movie.bean.DownloadStatus
+import com.calvin.box.movie.bean.Epg
+import com.calvin.box.movie.bean.Group
 import com.calvin.box.movie.bean.History
 import com.calvin.box.movie.bean.Hot
 import com.calvin.box.movie.bean.Keep
+import com.calvin.box.movie.bean.Live
 import com.calvin.box.movie.bean.Result
 import com.calvin.box.movie.bean.Site
 import com.calvin.box.movie.bean.Vod
@@ -22,6 +27,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.toLocalDateTime
 
 class MovieDataRepository (
     private val api: MoiveApi,
@@ -135,6 +150,68 @@ class MovieDataRepository (
     }
     fun download(dev: Boolean, name: String): Flow<DownloadStatus>{
         return api.download(dev, name)
+    }
+
+    suspend fun getLive(live: Live):Live {
+       return  withContext(Dispatchers.IO) {
+            LiveParser.start(live)
+            parseTimeZone(live.epg)
+            verify(live)
+           live
+        }
+
+    }
+
+    private var liveTimeZone = TimeZone.currentSystemDefault()
+    private fun parseTimeZone(url: String) {
+        try {
+            if (!url.contains("serverTimeZone=")) return
+            val zoneId = getPlatform().getQueryParameter(url, "serverTimeZone")
+            if(zoneId.isNullOrEmpty()) return
+            val timeZone = TimeZone.of(zoneId)
+            liveTimeZone = timeZone
+        } catch (e: Exception) {
+            // Handle exception
+        }
+    }
+
+    private fun verify(item: Live) {
+        val iterator = item.groups.iterator()
+        while (iterator.hasNext()) {
+            val group = iterator.next()
+            if (group.channels.isEmpty()) iterator.remove()
+        }
+        if (item.groups.isEmpty() || item.groups[0].isKeep()) return
+        item.groups.add(0, Group.create("收藏", false))
+        LiveConfig.get().setKeep(item.groups)
+    }
+
+    suspend fun getEpg(channel: Channel): Epg? {
+        val now: Instant = Clock.System.now()
+        val today = now.toLocalDateTime(liveTimeZone)
+        val todayDate: LocalDate = today.date
+        val todayTime: LocalTime = today.time
+        val formatDatePattern = "yyyy-MM-dd"
+
+        @OptIn(FormatStringsInDatetimeFormats::class)
+        val dateFormat = LocalDate.Format {
+            byUnicodePattern(formatDatePattern)
+        }
+        val date = dateFormat.format(todayDate)
+        val url = channel.epg.replace("{date}", date)
+       return withContext(Dispatchers.IO) {
+            if (channel.data?.date != (date)) {
+                val epg = api.getEpg(url)
+                epg.key = channel.tvgName
+                val formatDateTimePattern = "yyyy-MM-ddHH:mm"
+                @OptIn(FormatStringsInDatetimeFormats::class)
+                val dateTimeFormat = LocalDateTime.Format {
+                    byUnicodePattern(formatDateTimePattern)
+                }
+                channel.data = (Epg.setDateTime(epg, liveTimeZone, dateTimeFormat))
+            }
+           channel.data?.selected()
+        }
     }
 
     private var _homeResult:Result? = null
